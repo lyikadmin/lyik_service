@@ -18,7 +18,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     traceback.print_exc()
     return JSONResponse(status_code=500, content={"detail": str(exc)})
 
-@app2.post("/process", response_model=StandardResponse)
+@app2.post("/process")
 async def process_endpoint(
     service_name: str = Form(...),
 ):
