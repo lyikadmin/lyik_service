@@ -4,6 +4,8 @@ from typing import List
 import uvicorn
 import traceback
 from models import StandardResponse, ResponseStatusEnum
+import logging
+logger = logging.getLogger()
 
 from license_manager import LicenseManager
 from service_manager import ServiceManager
@@ -37,6 +39,7 @@ async def process_endpoint(
     #     )
 
     # Call ServiceManager and get Response
+    logger.info(f"Received request for {service_name}")
     response = await ServiceManager.process_request(
         service_name=service_name,
         request=request,

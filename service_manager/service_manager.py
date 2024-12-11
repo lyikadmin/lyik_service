@@ -9,6 +9,8 @@ from service_handlers.signature_ml.utils.signature_extract import extract_signat
 from service_handlers.liveness import process_liveness
 from enum import Enum
 import base64
+import logging
+logger = logging.getLogger()
 
 
 class ServicesEnum(str, Enum):
@@ -36,6 +38,7 @@ class ServiceManager:
 
     @staticmethod
     def handle_signature_extraction(files: List[UploadFile]):
+        logger.info("Initiating Signature Extraction")
         if not files:
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
@@ -69,6 +72,7 @@ class ServiceManager:
 
     @staticmethod
     def handle_liveness_check(files: List[UploadFile], additional_params: dict) -> StandardResponse:
+        logger.info("Initiating Liveness Check")
         if not files:
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
