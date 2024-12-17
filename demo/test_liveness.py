@@ -1,4 +1,3 @@
-
 from typing import Optional, Any
 import asyncio
 import os
@@ -10,6 +9,8 @@ logger = logging.getLogger()
 from pydantic import BaseModel
 
 from enum import Enum
+
+
 # Mock or sample models for testing purposes
 class ContextModel:
     # Define your mock structure for ContextModel
@@ -41,6 +42,7 @@ class GeoLocation:
 class VERIFY_RESPONSE_STATUS:
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
+
 
 class ResponseStatusEnum(str, Enum):
     success = "success"
@@ -113,7 +115,7 @@ class VerificationService:
 
                 # Make the POST request to the generic server
                 response = requests.post(
-                    "http://0.0.0.0:8000/process", data=data, files=files
+                    "http://98.70.99.42/process", data=data, files=files
                 )
 
             # Check the response
@@ -139,15 +141,19 @@ class VerificationService:
         except Exception as e:
             logger.exception("Failed liveness verification.")
             raise Exception(f"Failed liveness verification. {e}")
-        
+
+
 async def main():
+    import json
     # Create a sample payload
     geo_loc = GeoLocation(lat=28.6139, lng=77.2090)
     liveness_payload = {
         "liveness_geo_loc": geo_loc,
-        "liveness_captcha": ["python", "react"],
+        "liveness_captcha": ["python", "react", "tarantula"],
         "liveness_video": "/Users/akhilbabu/Documents/work/servers/signature_server/demo/liveness.mov",
     }
+    lpj = json.dumps(liveness_payload, default=lambda o: o.__dict__)
+    print(lpj)
 
     payload = SingleFieldModel(field_value=liveness_payload)
     context = None  # or a proper instance of ContextModel if required

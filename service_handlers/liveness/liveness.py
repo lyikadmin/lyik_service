@@ -53,7 +53,7 @@ def process_liveness(video_path: str, lat: float, lng: float, captcha_list: List
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
                 message="Verification failed: captcha keywords not matched.",
-                result={"liveness_status": "failed"},
+                result={"liveness_status": " ".join(transcribed_text)},
             )
 
     except Exception as e:
@@ -84,7 +84,10 @@ def match_captcha_keywords(captcha_list: List[str], video_path: str) -> Tuple[bo
         transcribed_text = speech_to_text(audio_path)
         match_found = match_keywords(transcribed_text, keyword_list)
         logger.debug(f"Captcha match result: {match_found}, transcription: {transcribed_text}, keywords: {keyword_list}")
-        return match_found, transcribed_text
+        if match_found:
+            return match_found, transcribed_text
+        else:
+            transcribed_text = [f"Failed Captcha matching. Transcription: '{transcribed_text}'. Captcha: '{keyword_list}'"]
     finally:
         if audio_path and os.path.exists(audio_path):
             os.remove(audio_path)

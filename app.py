@@ -39,13 +39,22 @@ async def process_endpoint(
     #     )
 
     # Call ServiceManager and get Response
-    logger.info(f"Received request for {service_name}")
-    response = await ServiceManager.process_request(
-        service_name=service_name,
-        request=request,
-        files=files,
-    )
-    return response
+    try:
+        logger.info(f"Received request for {service_name}")
+        response = await ServiceManager.process_request(
+            service_name=service_name,
+            request=request,
+            files=files,
+        )
+        return response
+    except Exception as e:
+        logger.error(e)
+        return StandardResponse(
+            status=ResponseStatusEnum.failure,
+            message="Services has failed. Please contact lyik support.",
+            result=None
+        )
+
 
 
 
