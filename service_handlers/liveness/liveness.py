@@ -57,6 +57,7 @@ def process_liveness(video_path: str, lat: float, lng: float, captcha_list: List
             )
 
     except Exception as e:
+        logger.error(f"Error during liveness check {e}")
         return StandardResponse(
             status=ResponseStatusEnum.failure.value,
             message=f"Unexpected error during liveness check: {str(e)}",
