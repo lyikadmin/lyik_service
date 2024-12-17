@@ -66,14 +66,27 @@ def process_liveness(video_path: str, lat: float, lng: float, captcha_list: List
 
 
 def is_location_in_country(lat: float, lng: float, desired_country: str = "India") -> bool:
-    try:
-        geolocator = Nominatim(user_agent="geo_verifier")
-        location = geolocator.reverse((lat, lng))
-        if location and desired_country in location.address:
-            return True
-        return False
-    except Exception as e:
-        raise Exception(f"Error during geolocation check: {e}")
+    from geopy.geocoders import Nominatim
+    from geopy.exc import GeocoderTimedOut
+    from time import sleep
+    retries = 3  # Number of retries
+    timeout = 5  # Timeout duration in seconds
+
+    geolocator = Nominatim(user_agent="geo_verifier", timeout=timeout)
+
+    for attempt in range(retries):
+        try:
+            location = geolocator.reverse((lat, lng))
+            if location and desired_country in location.address:
+                return True
+            return False
+        except GeocoderTimedOut:
+            print(f"Timeout occurred. Retrying... Attempt {attempt + 1} of {retries}")
+            sleep(2 ** attempt)  # Exponential backoff: 2, 4, 8 seconds
+        except Exception as e:
+            raise Exception(f"Error during geolocation check: {e}")
+
+    raise Exception("Failed to fetch geolocation data after multiple retries.")
 
 
 def match_captcha_keywords(captcha_list: List[str], video_path: str) -> Tuple[bool, List[str]]:
