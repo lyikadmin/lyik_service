@@ -52,7 +52,7 @@ def process_liveness(video_path: str, lat: float, lng: float, captcha_list: List
         else:
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
-                message="Verification failed: captcha keywords not matched.",
+                message="Verification failed: captcha keywords not matched. ".join(transcribed_text),
                 result={"liveness_status": " ".join(transcribed_text)},
             )
 
