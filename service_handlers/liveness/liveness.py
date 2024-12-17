@@ -102,6 +102,7 @@ def match_captcha_keywords(captcha_list: List[str], video_path: str) -> Tuple[bo
             return match_found, transcribed_text
         else:
             transcribed_text = [f"Failed Captcha matching. Transcription: '{transcribed_text}'. Captcha: '{keyword_list}'"]
+            return match_found, transcribed_text
     finally:
         if audio_path and os.path.exists(audio_path):
             os.remove(audio_path)
