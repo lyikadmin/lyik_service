@@ -158,7 +158,7 @@ def speech_to_text(audio_path: str, model_name="base") -> List[str]:
 
 
 def match_keywords(transcribed_text: List[str], keywords: List[str]) -> bool:
-    match_score = 0.90
+    match_score = 0.70
     keyword_index = 0
     for word in transcribed_text:
         if keyword_index < len(keywords) and word == keywords[keyword_index]:
