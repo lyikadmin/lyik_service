@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-
-def process_liveness(video_path: str, lat: float, lng: float, captcha_list: List[str]) -> StandardResponse:
+def process_liveness(
+    video_path: str, lat: float, lng: float, captcha_list: List[str]
+) -> StandardResponse:
     """
     Main entry function for liveness check. Verifies:
     1. Geolocation: checks if lat/lng is in India.
@@ -52,7 +53,9 @@ def process_liveness(video_path: str, lat: float, lng: float, captcha_list: List
         else:
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
-                message="Verification failed: captcha keywords not matched. ".join(transcribed_text),
+                message="Verification failed: captcha keywords not matched. ".join(
+                    transcribed_text
+                ),
                 result={"liveness_status": " ".join(transcribed_text)},
             )
 
@@ -65,10 +68,13 @@ def process_liveness(video_path: str, lat: float, lng: float, captcha_list: List
         )
 
 
-def is_location_in_country(lat: float, lng: float, desired_country: str = "India") -> bool:
+def is_location_in_country(
+    lat: float, lng: float, desired_country: str = "India"
+) -> bool:
     from geopy.geocoders import Nominatim
     from geopy.exc import GeocoderTimedOut
     from time import sleep
+
     retries = 3  # Number of retries
     timeout = 5  # Timeout duration in seconds
 
@@ -82,14 +88,16 @@ def is_location_in_country(lat: float, lng: float, desired_country: str = "India
             return False
         except GeocoderTimedOut:
             print(f"Timeout occurred. Retrying... Attempt {attempt + 1} of {retries}")
-            sleep(2 ** attempt)  # Exponential backoff: 2, 4, 8 seconds
+            sleep(2**attempt)  # Exponential backoff: 2, 4, 8 seconds
         except Exception as e:
             raise Exception(f"Error during geolocation check: {e}")
 
     raise Exception("Failed to fetch geolocation data after multiple retries.")
 
 
-def match_captcha_keywords(captcha_list: List[str], video_path: str) -> Tuple[bool, List[str]]:
+def match_captcha_keywords(
+    captcha_list: List[str], video_path: str
+) -> Tuple[bool, List[str]]:
     keyword_list = [kw.lower().strip() for kw in captcha_list]
 
     audio_path = None
@@ -97,11 +105,15 @@ def match_captcha_keywords(captcha_list: List[str], video_path: str) -> Tuple[bo
         audio_path = extract_audio_from_video(video_path)
         transcribed_text = speech_to_text(audio_path)
         match_found = match_keywords(transcribed_text, keyword_list)
-        logger.debug(f"Captcha match result: {match_found}, transcription: {transcribed_text}, keywords: {keyword_list}")
+        logger.debug(
+            f"Captcha match result: {match_found}, transcription: {transcribed_text}, keywords: {keyword_list}"
+        )
         if match_found:
             return match_found, transcribed_text
         else:
-            transcribed_text = [f"Failed Captcha matching. Transcription: '{transcribed_text}'. Captcha: '{keyword_list}'"]
+            transcribed_text = [
+                f"Failed Captcha matching. Transcription: '{transcribed_text}'. Captcha: '{keyword_list}'"
+            ]
             return match_found, transcribed_text
     finally:
         if audio_path and os.path.exists(audio_path):
@@ -117,7 +129,9 @@ def extract_audio_from_video(video_path: str) -> str:
         if not audio_stream:
             raise ValueError(f"No audio stream found in the video file '{video_path}'.")
 
-        resampler = av.audio.resampler.AudioResampler(format="s16p", layout="mono", rate=44100)
+        resampler = av.audio.resampler.AudioResampler(
+            format="s16p", layout="mono", rate=44100
+        )
 
         with wave.open(audio_output, "wb") as wav_file:
             wav_file.setnchannels(1)
@@ -134,7 +148,9 @@ def extract_audio_from_video(video_path: str) -> str:
 
         if os.path.exists(audio_output):
             file_size = os.path.getsize(audio_output)
-            logger.debug(f"Audio file '{audio_output}' created, size: {file_size} bytes.")
+            logger.debug(
+                f"Audio file '{audio_output}' created, size: {file_size} bytes."
+            )
         else:
             raise RuntimeError("Failed to create audio file.")
 
@@ -157,13 +173,44 @@ def speech_to_text(audio_path: str, model_name="base") -> List[str]:
         raise Exception(f"Error converting speech to text: {e}")
 
 
-def match_keywords(transcribed_text: List[str], keywords: List[str]) -> bool:
-    match_score = 0.10
-    keyword_index = 0
-    for word in transcribed_text:
-        if keyword_index < len(keywords) and word == keywords[keyword_index]:
-            keyword_index += 1
-        if keyword_index == len(keywords):
-            break
-    score = keyword_index / len(keywords) if keywords else 0
-    return score >= match_score
+# def match_keywords(transcribed_text: List[str], keywords: List[str]) -> bool:
+#     match_score = 0.10
+#     keyword_index = 0
+#     for word in transcribed_text:
+#         if keyword_index < len(keywords) and word == keywords[keyword_index]:
+#             keyword_index += 1
+#         if keyword_index == len(keywords):
+#             break
+#     score = keyword_index / len(keywords) if keywords else 0
+#     return score >= match_score
+
+
+def match_keywords(
+    transcribed_text: List[str], keywords: List[str], match_score: float = 0.5
+) -> bool:
+    """
+    Returns True if the fraction of unique keywords found in transcribed_text
+    is at least match_score, else False.
+
+    Example:
+      match_keywords(
+         ['sir', 'tune', 'imagine', 'body', 'further', 'plane'],
+         ['cell', 'tune', 'imagine', 'border', 'fairly', 'plane'],
+         match_score=0.5
+      )
+      -> True (because we match 3 out of 6 keywords => 0.5 => 50%)
+    """
+    if not keywords:
+        # No keywords means there's nothing to match, so return False by default
+        return False
+
+    transcribed_set = set(transcribed_text)
+    keyword_set = set(keywords)
+
+    # Count how many unique keywords appear in transcribed_text
+    matched_count = sum(1 for kw in keyword_set if kw in transcribed_set)
+
+    # Fraction of keywords matched
+    fraction_matched = matched_count / len(keyword_set)
+
+    return fraction_matched >= match_score
