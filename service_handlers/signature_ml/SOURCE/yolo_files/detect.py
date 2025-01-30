@@ -14,9 +14,7 @@ from .utils.datasets import LoadStreams, LoadImages
 from .utils.general import check_img_size, non_max_suppression, scale_coords, set_logging
 from .utils.torch_utils import select_device, time_synchronized
 yolo_model_best_pt_path = "service_handlers/signature_ml/SOURCE/yolo_files/best.pt"
-def detect(image_path):
-    # 'weights': 'lyik/SOURCE/yolo_files/best.pt',
-        # Access 'best.pt' using the context manager
+def detect(image_path, check_wet_signature_coverage=False, coverage_threshold=0.6):
     opt = {
         'weights': str(yolo_model_best_pt_path),
         'source': image_path,
@@ -83,6 +81,11 @@ def detect(image_path):
 
                 # Extract and store crops in-memory
                 for *xyxy, conf, cls in reversed(det):
+                    # Check bounding box coverage if enabled
+                    if check_wet_signature_coverage and not check_bounding_box_coverage(xyxy, im0.shape, coverage_threshold):
+                        print("Bounding box coverage below threshold.")
+                        return "Signature not detected as wet signature. Make sure the signature is clear, and spans the full image without gaps."
+
                     cropped_img = im0[int(xyxy[1]):int(xyxy[3]), int(xyxy[0]):int(xyxy[2])]
                     pil_img = Image.fromarray(cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB))
                     
@@ -93,3 +96,26 @@ def detect(image_path):
                     cropped_images.append(buffer)
 
         return cropped_images if cropped_images else None
+
+def check_bounding_box_coverage(xyxy, image_shape, coverage_threshold=0.6):
+    """
+    Checks whether the bounding box covers at least a specified percentage of the image area.
+
+    Args:
+        xyxy (list): Bounding box coordinates [x_min, y_min, x_max, y_max].
+        image_shape (tuple): Shape of the image as (height, width, channels).
+        coverage_threshold (float): Minimum percentage of image area the bounding box must cover.
+
+    Returns:
+        bool: True if the bounding box covers the required area, False otherwise.
+    """
+    bbox_width = xyxy[2] - xyxy[0]
+    bbox_height = xyxy[3] - xyxy[1]
+    bbox_area = bbox_width * bbox_height
+
+    image_height, image_width = image_shape[:2]
+    image_area = image_width * image_height
+
+    coverage_ratio = bbox_area / image_area
+    print(f"Coverage_ratio:{coverage_ratio}\n Coverage_threshold: {coverage_threshold}")
+    return coverage_ratio >= coverage_threshold

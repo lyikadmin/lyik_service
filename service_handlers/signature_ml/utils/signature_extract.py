@@ -28,17 +28,21 @@ def extract_signature(document_image_path: str) -> Union[BytesIO, None]:
         document_image_path (str): Path to the document image.
 
     Returns:
-        None
+        Bytes, if signature is detected, string if known error, None if not detected.
     """
 
     # Step 1: Detect signatures in the document
-    detected_images = detect_signature(document_image_path)
-    if not detected_images:
+    detect_signature_response = detect_signature(document_image_path)
+    if not detect_signature_response:
         print("Signature detection failed.")
         return
 
+    # Returns string error message if the coverage is not as expected
+    if isinstance(detect_signature_response, str):
+        return detect_signature_response
+
     # Get the first detected signature.
-    signature_cropped_image_buffer = detected_images[0]
+    signature_cropped_image_buffer = detect_signature_response[0]
 
     # Step 2: Clean the detected signature
     cleaned_image = clean_signature(signature_cropped_image_buffer)
@@ -60,11 +64,17 @@ def detect_signature(document_image_path: str) -> list[BytesIO]:
     Returns:
         list[BytesIO]: List of BytesIO objects containing the processed signature images.
     """
-    detected_images = detect.detect(document_image_path)
+    detect_image_response = detect.detect(image_path=document_image_path, check_wet_signature_coverage=True, coverage_threshold=0.6)
+
+    # Returns string error message if the coverage is not as expected
+    if isinstance(detect_image_response, str):
+        return detect_image_response
+
     processed_images = []
 
-    if detected_images:
-        for img_buffer in detected_images:
+
+    if detect_image_response:
+        for img_buffer in detect_image_response:
             # Load the image from the buffer and process it
             img_buffer.seek(0)
             detected_image = Image.open(img_buffer).convert("RGB")

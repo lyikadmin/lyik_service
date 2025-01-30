@@ -163,7 +163,9 @@ def extract_audio_from_video(video_path: str) -> str:
 def speech_to_text(audio_path: str, model_name="base") -> List[str]:
     try:
         model = whisper.load_model(model_name)
-        result = model.transcribe(audio=audio_path)
+        result = model.transcribe(audio=audio_path, 
+                                  language="en"
+                                  )
         text = str(result["text"]).lower()
         text = re.sub(r"[^\w\s]", "", text)
         text = re.sub(r"\s+", " ", text)
@@ -212,5 +214,7 @@ def match_keywords(
 
     # Fraction of keywords matched
     fraction_matched = matched_count / len(keyword_set)
+
+    logger.debug(f"Transcription match score: '{fraction_matched}'")
 
     return fraction_matched >= match_score
