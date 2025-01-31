@@ -12,6 +12,7 @@ from enum import Enum
 from pathlib import Path
 import base64
 import logging
+from PIL import Image
 logger = logging.getLogger()
 
 
@@ -66,7 +67,8 @@ class ServiceManager:
                     message="No signature detected. Could not extract.",
                 )
             
-            # Returns string error message if the coverage is not as expected
+            # Returns string error message if the coverage is not as expected.
+            # Returns strign erorr if multiple signatures are detected.
             if isinstance(extracted_signature_response, str):
                 return StandardResponse(
                     status=ResponseStatusEnum.failure.value,
@@ -76,12 +78,14 @@ class ServiceManager:
             # Encode binary data as Base64
             base64_signature = base64.b64encode(extracted_signature_response.getvalue()).decode("utf-8")
 
+            _save_image(base64_signature, "extracted_signature.png")
+
             return StandardResponse(
                 status=ResponseStatusEnum.success,
                 message="Signature successfully extracted.",
                 result={"signature_image": base64_signature},
             )
-
+        
     @staticmethod
     def handle_face_detection(files: List[UploadFile]) -> StandardResponse:
         logger.info("Initiating Liveness Check")
@@ -132,3 +136,19 @@ class ServiceManager:
             )
 
             return result
+
+
+def _save_image(base64_string: str, file_path: str):
+    # Add padding if necessary
+    missing_padding = len(base64_string) % 4
+    if missing_padding:
+        base64_string += '=' * (4 - missing_padding)
+    
+    # Decode the Base64 string
+    image_data = base64.b64decode(base64_string)
+    
+    # Convert the binary data to an image
+    image = Image.open(BytesIO(image_data))
+    
+    # Save the image
+    image.save(file_path)

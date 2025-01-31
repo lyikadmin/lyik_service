@@ -69,6 +69,7 @@ def detect(image_path, check_wet_signature_coverage=False, coverage_threshold=0.
 
         # Apply NMS
         pred = non_max_suppression(pred, opt['conf_thres'], opt['iou_thres'], classes=opt['classes'], agnostic=opt['agnostic_nms'])
+        print(f"The number of detections is {len(pred)}")
 
         # Process detections
         cropped_images = []
@@ -79,15 +80,26 @@ def detect(image_path, check_wet_signature_coverage=False, coverage_threshold=0.
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
 
-                # Extract and store crops in-memory
+              # Extract and store crops in-memory
                 for *xyxy, conf, cls in reversed(det):
+                    # Increase the bounding box area by 10%
+                    x1, y1, x2, y2 = xyxy
+                    width = x2 - x1
+                    height = y2 - y1
+                    increase_ratio_by = 0.5
+                    x1 = max(0, x1 - increase_ratio_by * width)
+                    y1 = max(0, y1 - increase_ratio_by * height)
+                    x2 = min(im0.shape[1], x2 + increase_ratio_by * width)
+                    y2 = min(im0.shape[0], y2 + increase_ratio_by * height)
+
                     # Check bounding box coverage if enabled
-                    if check_wet_signature_coverage and not check_bounding_box_coverage(xyxy, im0.shape, coverage_threshold):
+                    if check_wet_signature_coverage and not check_bounding_box_coverage((x1, y1, x2, y2), im0.shape, coverage_threshold):
                         print("Bounding box coverage below threshold.")
                         return "Signature not detected as wet signature. Make sure the signature is clear, and spans the full image without gaps."
 
-                    cropped_img = im0[int(xyxy[1]):int(xyxy[3]), int(xyxy[0]):int(xyxy[2])]
+                    cropped_img = im0[int(y1):int(y2), int(x1):int(x2)]
                     pil_img = Image.fromarray(cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB))
+                    
                     
                     # Save the image to a temporary file-like object
                     buffer = BytesIO()

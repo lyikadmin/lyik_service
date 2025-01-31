@@ -40,6 +40,10 @@ def extract_signature(document_image_path: str) -> Union[BytesIO, None]:
     # Returns string error message if the coverage is not as expected
     if isinstance(detect_signature_response, str):
         return detect_signature_response
+    
+    if len(detect_signature_response)>1:
+        print(f"Detected {len(detect_signature_response)} signature(s)")
+        return "Detected multiple signatures. Make sure there is only a single signature, and write it in a clean manner without gaps."
 
     # Get the first detected signature.
     signature_cropped_image_buffer = detect_signature_response[0]
@@ -64,7 +68,7 @@ def detect_signature(document_image_path: str) -> list[BytesIO]:
     Returns:
         list[BytesIO]: List of BytesIO objects containing the processed signature images.
     """
-    detect_image_response = detect.detect(image_path=document_image_path, check_wet_signature_coverage=True, coverage_threshold=0.6)
+    detect_image_response = detect.detect(image_path=document_image_path, check_wet_signature_coverage=True, coverage_threshold=0.0)
 
     # Returns string error message if the coverage is not as expected
     if isinstance(detect_image_response, str):
