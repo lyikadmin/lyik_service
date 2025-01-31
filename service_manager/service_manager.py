@@ -18,7 +18,7 @@ logger = logging.getLogger()
 class ServicesEnum(str, Enum):
     SignatureExtraction = "signature_extraction"
     LivenessCheck = "liveness"
-    FaceDetection = "face_detection"
+    FaceDetection = "detect_face"
 
 
 class ServiceManager:

@@ -9,10 +9,10 @@ from io import BytesIO
 from PIL import Image
 import importlib.resources
 
-from .models.experimental import attempt_load
-from .utils.datasets import LoadStreams, LoadImages
-from .utils.general import check_img_size, non_max_suppression, scale_coords, set_logging
-from .utils.torch_utils import select_device, time_synchronized
+from service_handlers.signature_ml.SOURCE.yolo_files.models.experimental import attempt_load
+from service_handlers.signature_ml.SOURCE.yolo_files.utils.datasets import LoadStreams, LoadImages
+from service_handlers.signature_ml.SOURCE.yolo_files.utils.general import check_img_size, non_max_suppression, scale_coords, set_logging
+from service_handlers.signature_ml.SOURCE.yolo_files.utils.torch_utils import select_device, time_synchronized
 yolo_model_best_pt_path = "service_handlers/signature_ml/SOURCE/yolo_files/best.pt"
 def detect(image_path, check_wet_signature_coverage=False, coverage_threshold=0.6):
     opt = {
