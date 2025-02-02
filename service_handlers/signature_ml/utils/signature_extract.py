@@ -68,7 +68,7 @@ def detect_signature(document_image_path: str) -> list[BytesIO]:
     Returns:
         list[BytesIO]: List of BytesIO objects containing the processed signature images.
     """
-    detect_image_response = detect.detect(image_path=document_image_path, check_wet_signature_coverage=True, coverage_threshold=0.0)
+    detect_image_response = detect.detect(image_path=document_image_path, check_wet_signature_coverage=True, coverage_threshold=0.3)
 
     # Returns string error message if the coverage is not as expected
     if isinstance(detect_image_response, str):
