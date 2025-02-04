@@ -41,9 +41,11 @@ def extract_signature(document_image_path: str) -> Union[BytesIO, None]:
     if isinstance(detect_signature_response, str):
         return detect_signature_response
     
-    if len(detect_signature_response)>1:
-        print(f"Detected {len(detect_signature_response)} signature(s)")
-        return "Detected multiple signatures. Make sure there is only a single signature, and write it in a clean manner without gaps."
+
+    ## Check if multiple signatures are detected
+    # if len(detect_signature_response)>1:
+    #     print(f"Detected {len(detect_signature_response)} signature(s)")
+    #     return "Detected multiple signatures. Make sure there is only a single signature, and write it in a clean manner without gaps."
 
     # Get the first detected signature.
     signature_cropped_image_buffer = detect_signature_response[0]
