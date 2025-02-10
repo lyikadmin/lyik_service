@@ -102,7 +102,7 @@ class ServiceManager:
             temp_file.flush()
 
             result = detect_face(
-                image_path=temp_file.name, required_face_coverage=25
+                image_path=temp_file.name, required_face_coverage=0 # this used to be 25%, now removing the required coverage check
             )
 
             return result
