@@ -87,11 +87,19 @@ def detect_face(image_path: str, required_face_coverage: float) -> StandardRespo
 
     # Method 1: With ranges from the corners
     # Defining the region in normalized coordinates (0.0 to 1.0 range)
-    region_x_min, region_y_min = 0.10, 0.10  # top-left corner (20% from left and top)
+    # region_x_min, region_y_min = 0.10, 0.10  # top-left corner (10% from left and top)
+    # region_x_max, region_y_max = (
+    #     0.90,
+    #     0.90,
+    # )  # bottom-right corner (90% from left and top)
+
+    # Removed the check for face to be away from the border by 10%. 
+    region_x_min, region_y_min = 0.0, 0.0  
     region_x_max, region_y_max = (
-        0.90,
-        0.90,
-    )  # bottom-right corner (80% from left and top)
+        1,
+        1,
+    )  
+
 
     # Convert normalized coordinates to actual pixel coordinates
     allowed_min_x = int(region_x_min * w)
@@ -117,40 +125,22 @@ def detect_face(image_path: str, required_face_coverage: float) -> StandardRespo
     print(f"Photo coordinate endX ({endX}) <= max_x ({allowed_max_x}) -> {endX <= allowed_max_x}")
     print(f"Photo coordinate endY ({endY}) <= max_y ({allowed_max_y}) -> {endY <= allowed_max_y}")
 
+    # Removed the check for region checking=================
     # Check if face is within the region
-    is_within = (
-        startX >= allowed_min_x,
-        startY >= allowed_min_y,
-        endX <= allowed_max_x,
-        endY <= allowed_max_y,
-    )
+    # is_within = (
+    #     startX >= allowed_min_x,
+    #     startY >= allowed_min_y,
+    #     endX <= allowed_max_x,
+    #     endY <= allowed_max_y,
+    # )
 
-    if not all(is_within):
-        print("face not whithin region!")
-        message = "Face is not within the specified region. Please readjust the face to the correct location."
-        return StandardResponse(
-            status=ResponseStatusEnum.failure, message=message, result=message
-        )
-
-    # # Method 2: with specified coordinates
-    # allowed_min_x = 100
-    # allowed_min_y = 50
-    # allowed_max_x = 300
-    # allowed_max_y = 350
-
-    # # Where (startX, startY, endX, endY) is your detected face bounding box
-    # if (
-    #     startX < allowed_min_x or
-    #     startY < allowed_min_y or
-    #     endX > allowed_max_x or
-    #     endY > allowed_max_y
-    # ):
-    #     message = "Face is not within the specified region."
+    # if not all(is_within):
+    #     print("face not whithin region!")
+    #     message = "Face is not within the specified region. Please readjust the face to the correct location."
     #     return StandardResponse(
-    #         status=ResponseStatusEnum.failure,
-    #         message=message,
-    #         result=message
+    #         status=ResponseStatusEnum.failure, message=message, result=message
     #     )
+    # ======================================================
 
     # 8. Return success response
     message = f"Valid single face with sufficient coverage {coverage:.2f}% (centered)"
