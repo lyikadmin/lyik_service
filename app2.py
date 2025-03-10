@@ -37,6 +37,5 @@ async def process_endpoint(
     return service_name
 
 
-
 if __name__ == "__main__":
     uvicorn.run("app2:app2", host="0.0.0.0", port=8000, reload=True, log_level="debug")
