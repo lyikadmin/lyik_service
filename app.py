@@ -5,6 +5,7 @@ import uvicorn
 import traceback
 from models import StandardResponse, ResponseStatusEnum
 import logging
+from service_manager.service_manager import ServicesEnum
 logger = logging.getLogger()
 
 from license_manager import LicenseManager
@@ -23,7 +24,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.post("/process", response_model=StandardResponse)
 async def process_endpoint(
     request: Request,
-    service_name: str = Form(...),
+    service_name: ServicesEnum = Form(...),
     license_key: str = Form(None),
     license_endpoint: str = Form(None),
     files: List[UploadFile] = File([]),
