@@ -1,4 +1,4 @@
-from .document_models import Passport, PAN, DrivingLicense, Aadhaar
+from .document_models import Passport, PAN, DrivingLicense, Aadhaar, VoterId
 from .processing_models import DocumentProcessingState
 from .response_models import OCRResponse
 
@@ -8,4 +8,5 @@ document_models = {
     "driving_license": DrivingLicense,
     "pan": PAN,
     "aadhaar": Aadhaar,
+    "voter_id": VoterId
 }

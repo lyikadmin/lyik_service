@@ -4,20 +4,12 @@ from typing import Union, Any, List
 from .field_validators import DateConversionMixin
 from enum import Enum
 
-# Pydantic Models for Documents
-class Passport(DateConversionMixin):
-    passport_number: str
-    full_name: str
-    nationality: str
-    date_of_birth: date
-    expiry_date: date
 
-
-class PAN(DateConversionMixin):
-    permanent_account_number: str
-    name: str
-    fathers_name: str
-    date_of_birth: date
+class GenderEnum(str, Enum):
+    male = "M"
+    female = "F"
+    transgender = "T"
+    other = "O"
 
 class LicenseClass(str, Enum):
     lmv = "LMV"
@@ -30,6 +22,49 @@ class LicenseClass(str, Enum):
     lmv_nt = "LMV-NT"
 
 
+
+
+# Pydantic Models for Documents
+class Passport(DateConversionMixin):
+    passport_number: Union[str, None] = Field(None)
+    surname: Union[str, None] = Field(None)
+    given_name: Union[str, None] = Field(None)
+    nationality: Union[str, None] = Field(None)
+    sex: Union[GenderEnum, None] = Field(None)
+    date_of_birth: Union[date, None] = Field(None)
+    date_of_expiry: Union[date, None] = Field(None)
+    date_of_issue: Union[date, None] = Field(None)
+    place_of_birth: Union[str, None] = Field(None)
+    place_of_issue: Union[str, None] = Field(None)
+    mrz_line_1: Union[str, None] = Field(None)
+    mrz_line_2: Union[str, None] = Field(None)
+    type: Union[str, None] = Field(None)
+    code: Union[str, None] = Field(None)
+    nationality: Union[str, None] = Field(None)
+    name_of_father: Union[str, None] = Field(None)
+    name_of_mother: Union[str, None] = Field(None)
+    name_of_spouse: Union[str, None] = Field(None)
+    address: Union[str, None] = Field(None)
+    old_passport_number: Union[str, None] = Field(None)
+    old_passport_date_of_issue: Union[str, None] = Field(None)
+    old_passport_place_of_issue: Union[str, None] = Field(None)
+    state: Union[str, None] = Field(None)
+    dist: Union[str, None] = Field(None)
+    city: Union[str, None] = Field(None)
+    country: Union[str, None] = Field(None)
+
+
+class PAN(DateConversionMixin):
+    permanent_account_number: str
+    name: str
+    fathers_name: str
+    date_of_birth: date
+    address: Union[str, None] = None
+    state: Union[str, None] = Field(None)
+    dist: Union[str, None] = Field(None)
+    city: Union[str, None] = Field(None)
+    country: Union[str, None] = Field(None)
+
 class DrivingLicense(DateConversionMixin):
     license_number: Union[str, None] = None
     full_name: Union[str, None] = None
@@ -39,13 +74,36 @@ class DrivingLicense(DateConversionMixin):
         None, description="can have multiple classes."
     )
     address: Union[str, None] = None
-    bloodgroup: Union[str, None] = Field(None, description="must be valid blood type. Sometimes represented as B.G.")
+    state: Union[str, None] = Field(None)
+    dist: Union[str, None] = Field(None)
+    city: Union[str, None] = Field(None)
+    country: Union[str, None] = Field(None)
+    bloodgroup: Union[str, None] = Field(
+        None, description="must be valid blood type. Sometimes represented as B.G."
+    )
     son_of: Union[str, None] = Field(None, description="given as s/o in credentials")
+    gender: Union[GenderEnum, None] = None
 
 
 class Aadhaar(DateConversionMixin):
-    aadhaar_number: str
-    full_name: str
-    dob: date
-    gender: str
+    aadhaar_number: Union[str, None] = Field(None)
+    full_name: Union[str, None] = Field(None)
+    dob: Union[date, None] = Field(None)
+    gender: Union[GenderEnum, None] = Field(None)
+    full_address: Union[str, None] = Field(None)
+    state: Union[str, None] = Field(None)
+    dist: Union[str, None] = Field(None)
+    city: Union[str, None] = Field(None)
+    country: Union[str, None] = Field(None)
 
+
+class VoterId(DateConversionMixin):
+    voter_epic_id: Union[str, None] = Field(None)
+    full_name: Union[str, None] = Field(None)
+    dob: Union[date, None] = Field(None)
+    gender: Union[GenderEnum, None] = Field(None)
+    full_address: Union[str, None] = Field(None)
+    state: Union[str, None] = Field(None)
+    dist: Union[str, None] = Field(None)
+    city: Union[str, None] = Field(None)
+    country: Union[str, None] = Field(None)
