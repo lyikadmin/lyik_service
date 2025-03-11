@@ -11,6 +11,7 @@ class GenderEnum(str, Enum):
     transgender = "T"
     other = "O"
 
+
 class LicenseClass(str, Enum):
     lmv = "LMV"
     mcwg = "MCWG"
@@ -20,8 +21,6 @@ class LicenseClass(str, Enum):
     fvg = "FVG"
     mc_ex50cc = "MC EX50CC"
     lmv_nt = "LMV-NT"
-
-
 
 
 # Pydantic Models for Documents
@@ -49,21 +48,23 @@ class Passport(DateConversionMixin):
     old_passport_date_of_issue: Union[str, None] = Field(None)
     old_passport_place_of_issue: Union[str, None] = Field(None)
     state: Union[str, None] = Field(None)
-    dist: Union[str, None] = Field(None)
+    district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
 
 
 class PAN(DateConversionMixin):
-    permanent_account_number: str
-    name: str
-    fathers_name: str
-    date_of_birth: date
+    permanent_account_number: Union[str, None] = Field(None)
+    name: Union[str, None] = Field(None)
+    fathers_name: Union[str, None] = Field(None)
+    date_of_birth: Union[date, None] = Field(None)
+    gender: Union[GenderEnum, None] = Field(None)
     address: Union[str, None] = None
     state: Union[str, None] = Field(None)
-    dist: Union[str, None] = Field(None)
+    district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
+
 
 class DrivingLicense(DateConversionMixin):
     license_number: Union[str, None] = None
@@ -75,7 +76,7 @@ class DrivingLicense(DateConversionMixin):
     )
     address: Union[str, None] = None
     state: Union[str, None] = Field(None)
-    dist: Union[str, None] = Field(None)
+    district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
     bloodgroup: Union[str, None] = Field(
@@ -92,7 +93,7 @@ class Aadhaar(DateConversionMixin):
     gender: Union[GenderEnum, None] = Field(None)
     full_address: Union[str, None] = Field(None)
     state: Union[str, None] = Field(None)
-    dist: Union[str, None] = Field(None)
+    district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
 
@@ -104,6 +105,6 @@ class VoterId(DateConversionMixin):
     gender: Union[GenderEnum, None] = Field(None)
     full_address: Union[str, None] = Field(None)
     state: Union[str, None] = Field(None)
-    dist: Union[str, None] = Field(None)
+    district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
