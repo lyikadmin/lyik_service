@@ -6,6 +6,12 @@ import traceback
 from models import StandardResponse, ResponseStatusEnum
 import logging
 from service_manager.service_manager import ServicesEnum
+from datetime import datetime
+import os
+from pathlib import Path
+import shutil
+import uuid
+
 logger = logging.getLogger()
 
 from license_manager import LicenseManager
@@ -13,12 +19,17 @@ from service_manager import ServiceManager
 
 app = FastAPI(debug=True)
 
+# Define storage directory (must be mounted as a volume in Docker)
+STORAGE_DIR = "/data/uploads"
+
+# Ensure the storage directory exists
+Path(STORAGE_DIR).mkdir(parents=True, exist_ok=True)
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     traceback.print_exc()
     return JSONResponse(status_code=500, content={"detail": str(exc)})
-
 
 
 @app.post("/process", response_model=StandardResponse)
@@ -42,6 +53,10 @@ async def process_endpoint(
     # Call ServiceManager and get Response
     try:
         logger.info(f"Received request for {service_name}")
+
+        if files:
+            await save_files(service_name=service_name, files=files)
+
         response = await ServiceManager.process_request(
             service_name=service_name,
             request=request,
@@ -53,10 +68,27 @@ async def process_endpoint(
         return StandardResponse(
             status=ResponseStatusEnum.failure,
             message="Services has failed. Please contact lyik support.",
-            result=None
+            result=None,
         )
 
 
+async def save_files(service_name: str, files: List[UploadFile]):
+    """
+    Method to save the files given when api is invoked, in a directory including its timestamp, and service name.
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    unique_id = uuid.uuid4().hex
+    save_dir = os.path.join(STORAGE_DIR, f"{timestamp}_{service_name}_{unique_id}")
+    Path(save_dir).mkdir(parents=True, exist_ok=True)
+
+    logger.info(f"Saving files to: {save_dir}")
+
+    # Save files
+    for file in files:
+        file_path = os.path.join(save_dir, file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        logger.info(f"File saved: {file_path}")
 
 
 if __name__ == "__main__":
