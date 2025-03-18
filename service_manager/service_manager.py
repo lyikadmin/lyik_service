@@ -14,6 +14,8 @@ from service_handlers.agent_ocr import (
     DocumentProcessingState,
     convert_pydantic_to_json,
 )
+from service_handlers.pincode_service import get_pincode_details
+from service_handlers.pincode_service.pin_code_models import PincodeDetails
 from enum import Enum
 from pathlib import Path
 import base64
@@ -29,6 +31,7 @@ class ServicesEnum(str, Enum):
     LivenessCheck = "liveness"
     FaceDetection = "detect_face"
     OCR = "ocr"
+    PinCodeDataExtraction = "pin_code_data_extraction"
 
 
 class ServiceManager:
@@ -47,6 +50,8 @@ class ServiceManager:
             return ServiceManager.handle_face_detection(files)
         elif service_name == ServicesEnum.OCR.value:
             return await ServiceManager.handle_ocr(files)
+        elif service_name == ServicesEnum.PinCodeDataExtraction.value:
+            return ServiceManager.handle_pincode_data_extraction(additional_params)
         else:
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
@@ -190,6 +195,26 @@ class ServiceManager:
                 document_type=result.document_type, validated_data=result.validated_data
             ),
         )
+
+    @staticmethod
+    def handle_pincode_data_extraction(additional_params: dict) -> StandardResponse:
+        logger.info("Initiating Pin Code Data Extraction")
+        try:
+            pincode = int(additional_params.get("pin_code", 0))
+            pin_code_details: PincodeDetails = PincodeDetails.model_validate(
+                get_pincode_details(pincode)
+            )
+            return StandardResponse(
+                status=ResponseStatusEnum.success,
+                message=f"Successfully extracted Pin Code for {pin_code_details.pincode}",
+                result=pin_code_details,
+            )
+        except Exception as e:
+            return StandardResponse(
+                status=ResponseStatusEnum.failure,
+                message=f"Failed to get data for Pin Code {pin_code_details.pincode}",
+                result=e,
+            )
 
 
 def _save_image(base64_string: str, file_path: str):
