@@ -9,6 +9,7 @@ services:
       - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
+      - DOCKER_ENV=true  # Define Docker environment
     volumes:
       - uploads:/data/uploads
 

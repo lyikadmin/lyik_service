@@ -135,6 +135,7 @@ services:
       - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
+      - DOCKER_ENV=true
     volumes:
       - uploads:/data/uploads
 

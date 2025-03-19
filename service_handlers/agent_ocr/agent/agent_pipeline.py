@@ -11,6 +11,9 @@ from langgraph.graph import StateGraph
 from .llm_invoke import query_llm
 from .utils import clean_llm_response, remove_newline_characters
 
+from service_handlers.pincode_service import get_pincode_details
+from service_handlers.pincode_service.pin_code_models import PincodeDetails
+
 async def extract_text_from_image(
     state: DocumentProcessingState,
 ) -> DocumentProcessingState:
@@ -132,9 +135,26 @@ async def validate_document_data(
     if state.document_type not in document_models:
         state.error = f"Unrecognized document type: {state.document_type}"
         return state
+    
+    try:
+        # Try to add information if pincode exists
+        extracted_data = state.extracted_data
+        pincode = extracted_data.get("pin_code", "")
+        if pincode:
+            pincode = int(pincode)
+            pin_code_details: PincodeDetails = PincodeDetails.model_validate(
+                get_pincode_details(pincode)
+            )
+            extracted_data["state"] = pin_code_details.statename
+            extracted_data["district"] = pin_code_details.district
+            extracted_data["circlename"] = pin_code_details.circlename
+            extracted_data["regionname"] = pin_code_details.regionname
+            extracted_data["divisionname"] = pin_code_details.divisionname
+    except:
+        pass
 
     try:
-        validated_data = document_models[state.document_type](**state.extracted_data)
+        validated_data = document_models[state.document_type](**extracted_data)
         state.validated_data = validated_data.model_dump()
     except ValidationError as e:
         state.error = f"Validation error: {e}"

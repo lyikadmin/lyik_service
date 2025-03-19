@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import Field, ConfigDict
 from datetime import date
 from typing import Union, Any, List
 from .field_validators import DateConversionMixin
@@ -44,6 +44,7 @@ class Passport(DateConversionMixin):
     name_of_mother: Union[str, None] = Field(None)
     name_of_spouse: Union[str, None] = Field(None)
     address: Union[str, None] = Field(None)
+    pin_code: Union[int, None] = Field(None, description="Zip code, 6 digit number.")
     old_passport_number: Union[str, None] = Field(None)
     old_passport_date_of_issue: Union[str, None] = Field(None)
     old_passport_place_of_issue: Union[str, None] = Field(None)
@@ -51,6 +52,7 @@ class Passport(DateConversionMixin):
     district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
+    model_config = ConfigDict(extra="allow")
 
 
 class PAN(DateConversionMixin):
@@ -60,10 +62,12 @@ class PAN(DateConversionMixin):
     date_of_birth: Union[date, None] = Field(None)
     gender: Union[GenderEnum, None] = Field(None)
     address: Union[str, None] = None
+    pin_code: Union[int, None] = Field(None, description="Zip code, 6 digit number.")
     state: Union[str, None] = Field(None)
     district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
+    model_config = ConfigDict(extra="allow")
 
 
 class DrivingLicense(DateConversionMixin):
@@ -75,6 +79,7 @@ class DrivingLicense(DateConversionMixin):
         None, description="can have multiple classes."
     )
     address: Union[str, None] = None
+    pin_code: Union[str, None] = Field(None, description="Zip code, 6 digit number.")
     state: Union[str, None] = Field(None)
     district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
@@ -84,6 +89,7 @@ class DrivingLicense(DateConversionMixin):
     )
     son_of: Union[str, None] = Field(None, description="given as s/o in credentials")
     gender: Union[GenderEnum, None] = None
+    model_config = ConfigDict(extra="allow")
 
 
 class Aadhaar(DateConversionMixin):
@@ -92,10 +98,12 @@ class Aadhaar(DateConversionMixin):
     dob: Union[date, None] = Field(None)
     gender: Union[GenderEnum, None] = Field(None)
     full_address: Union[str, None] = Field(None)
+    pin_code: Union[int, None] = Field(None, description="Zip code, 6 digit number.")
     state: Union[str, None] = Field(None)
     district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
+    model_config = ConfigDict(extra="allow")
 
 
 class VoterId(DateConversionMixin):
@@ -104,7 +112,9 @@ class VoterId(DateConversionMixin):
     dob: Union[date, None] = Field(None)
     gender: Union[GenderEnum, None] = Field(None)
     full_address: Union[str, None] = Field(None)
+    pin_code: Union[int, None] = Field(None, description="Zip code, 6 digit number.")
     state: Union[str, None] = Field(None)
     district: Union[str, None] = Field(None)
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
+    model_config = ConfigDict(extra="allow")

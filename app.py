@@ -20,7 +20,10 @@ from service_manager import ServiceManager
 app = FastAPI(debug=True)
 
 # Define storage directory (must be mounted as a volume in Docker)
-STORAGE_DIR = "/data/uploads"
+if os.getenv("DOCKER_ENV") == "true":  # Docker environment variable
+    STORAGE_DIR = "/data/uploads"
+else:  # Running locally (Mac)
+    STORAGE_DIR = os.path.expanduser("~/lyik_services_uploads")
 
 # Ensure the storage directory exists
 Path(STORAGE_DIR).mkdir(parents=True, exist_ok=True)
@@ -89,6 +92,7 @@ async def save_files(service_name: str, files: List[UploadFile]):
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         logger.info(f"File saved: {file_path}")
+        file.file.seek(0)
 
 
 if __name__ == "__main__":
