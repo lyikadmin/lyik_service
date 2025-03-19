@@ -124,7 +124,7 @@ server {
 Inside the **project root**, create **`docker-compose.yml`**:
 
 ```yaml
-version: '3'
+version: '1'
 
 services:
   app:
@@ -135,6 +135,8 @@ services:
       - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
+    volumes:
+      - uploads:/data/uploads
 
   nginx:
     image: nginx:latest
@@ -157,6 +159,10 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     entrypoint: sh -c "certbot certonly --webroot --webroot-path=/var/www/certbot --email you@example.com --agree-tos --no-eff-email --force-renewal -d lyikservices.lyik.com -d www.lyikservices.lyik.com"
+
+volumes:
+  uploads:  # Persistent volume for file uploads
+
 ```
 
 ---
