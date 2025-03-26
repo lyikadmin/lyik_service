@@ -155,10 +155,8 @@ async def validate_document_data(
         pass
 
     try:
-        print("Extracted Pin Code Before Validation:", extracted_data.get("pin_code"))
         validated_data = document_models[state.document_type](**extracted_data)
         state.validated_data = validated_data.model_dump()
-        print("Pin Code After Validation:", validated_data.getattr("pin_code"))
     except ValidationError as e:
         state.error = f"Validation error: {e}"
 

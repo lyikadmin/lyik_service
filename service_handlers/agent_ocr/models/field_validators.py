@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ValidationInfo
 from typing import Any
 from datetime import date, datetime
 
@@ -37,8 +37,13 @@ class DateConversionMixin(BaseModel):
 
     @field_validator("*", mode="before", check_fields=False)
     @classmethod
-    def try_convert_to_date(cls, value: Any) -> Any:
+    def try_convert_to_date(cls, value: Any, info: ValidationInfo) -> Any:
         """Attempt to convert the value to a date. If unsuccessful, return the original value."""
+
+        # Exclude non-date fields
+        excluded_fields = {"pin_code", "pin"}
+        if info.field_name in excluded_fields:
+            return value
 
         # If already a date, return as is
         if isinstance(value, date):
