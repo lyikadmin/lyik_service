@@ -98,7 +98,7 @@ async def extract_relevant_data(
 
     Ensure that the output you provide can be validated, and adheres to this Pydantic model schema.
     Make sure dates are in proper format (yyyy-mm-dd). Ignore any additional data for the dates.
-    Make sure if pin_code exists, its a 6 digit number. If not some number if its read as an alphabet, make it to the closest number. (example, S will be 5)
+    If a pin_code is found, ensure it is a 6-digit number only (no dashes, letters, or spaces). If a letter like 'S' appears due to OCR, replace it with a likely digit (e.g., 'S' → '5'). Do not reformat or restructure it. Output must be strictly numeric and 6 digits long.
 
     {json.dumps(document_models[state.document_type].model_json_schema(), indent=4)}
 
