@@ -151,6 +151,8 @@ async def validate_document_data(
             extracted_data["circlename"] = pin_code_details.circlename
             extracted_data["regionname"] = pin_code_details.regionname
             extracted_data["divisionname"] = pin_code_details.divisionname
+            if not extracted_data.get("city"):
+                extracted_data["city"] = pin_code_details.district
     except:
         pass
 
