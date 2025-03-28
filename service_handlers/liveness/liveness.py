@@ -106,7 +106,7 @@ def match_captcha_keywords(
         transcribed_text = speech_to_text(audio_path)
         match_found = match_keywords(transcribed_text, keyword_list)
         logger.debug(
-            f"Captcha match result: {match_found}, transcription: {transcribed_text}, keywords: {keyword_list}"
+            f"Captcha match result: {match_found}, \ntranscription: {transcribed_text}, \nkeywords: {keyword_list}"
         )
         if match_found:
             return match_found, transcribed_text
@@ -163,9 +163,7 @@ def extract_audio_from_video(video_path: str) -> str:
 def speech_to_text(audio_path: str, model_name="base") -> List[str]:
     try:
         model = whisper.load_model(model_name)
-        result = model.transcribe(audio=audio_path, 
-                                  language="en"
-                                  )
+        result = model.transcribe(audio=audio_path, language="en")
         text = str(result["text"]).lower()
         text = re.sub(r"[^\w\s]", "", text)
         text = re.sub(r"\s+", " ", text)
@@ -215,6 +213,8 @@ def match_keywords(
     # Fraction of keywords matched
     fraction_matched = matched_count / len(keyword_set)
 
-    logger.debug(f"Transcription match score: '{fraction_matched}'")
+    logger.debug(
+        f"Transcription match score: '{fraction_matched}'. {matched_count}/{len(keyword_set)} words match"
+    )
 
     return fraction_matched >= match_score
