@@ -188,7 +188,7 @@ def speech_to_text(audio_path: str, model_name="base") -> List[str]:
 
 
 def match_keywords(
-    transcribed_text: List[str], keywords: List[str], match_score: float = 0.00
+    transcribed_text: List[str], keywords: List[str], match_score: float = 0.65
 ) -> bool:
     """
     Returns True if the fraction of unique keywords found in transcribed_text
