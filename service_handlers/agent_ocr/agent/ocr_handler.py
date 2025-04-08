@@ -1,7 +1,7 @@
 import pytesseract
 from PIL import Image
 from .utils import remove_newline_characters
-import easyocr
+# import easyocr
 from paddleocr import PaddleOCR
 from typing import List
 import json
@@ -15,14 +15,14 @@ def run_tesseract(image: Image.Image) -> str:
         print(f"Exception for ocr tesseract: {str(e)}")
         return ""
 
-def run_easyocr(image_path: str) -> str:
-    try:
-        reader = easyocr.Reader(['en'], gpu=False)
-        results = reader.readtext(image_path, detail=0)
-        return remove_newline_characters(" ".join(results))
-    except Exception as e:
-        print(f"Exception for ocr easyocr: {str(e)}")
-        return ""
+# def run_easyocr(image_path: str) -> str:
+#     try:
+#         reader = easyocr.Reader(['en'], gpu=False)
+#         results = reader.readtext(image_path, detail=0)
+#         return remove_newline_characters(" ".join(results))
+#     except Exception as e:
+#         print(f"Exception for ocr easyocr: {str(e)}")
+#         return ""
 
 def run_paddleocr(image_path: str) -> str:
     try:
