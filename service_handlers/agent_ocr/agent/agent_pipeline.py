@@ -11,7 +11,7 @@ from langgraph.graph import StateGraph
 from .llm_invoke import query_llm
 from .utils import clean_llm_response, remove_newline_characters
 
-from .ocr_handler import run_easyocr, run_paddleocr, run_tesseract
+from .ocr_handler import run_paddleocr, run_tesseract
 
 from service_handlers.pincode_service import get_pincode_details
 from service_handlers.pincode_service.pin_code_models import PincodeDetails
