@@ -26,9 +26,9 @@ async def extract_text_from_image(
         for image_path in state.image_path:
             image = Image.open(image_path)
 
+            ocr_results["paddle"] = run_paddleocr(image_path)
             ocr_results["tesseract"] = run_tesseract(image)
             ocr_results["easyocr"] = run_easyocr(image_path)
-            ocr_results["paddle"] = run_paddleocr(image_path)
 
         state.extracted_text = json.dumps(ocr_results, indent=2)
         if not any(ocr_results.values()):
