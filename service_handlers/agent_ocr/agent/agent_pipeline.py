@@ -11,32 +11,29 @@ from langgraph.graph import StateGraph
 from .llm_invoke import query_llm
 from .utils import clean_llm_response, remove_newline_characters
 
+from .ocr_handler import run_easyocr, run_paddleocr, run_tesseract
+
 from service_handlers.pincode_service import get_pincode_details
 from service_handlers.pincode_service.pin_code_models import PincodeDetails
 
 async def extract_text_from_image(
     state: DocumentProcessingState,
 ) -> DocumentProcessingState:
-    """Extract text from an image using OCR with preprocessing."""
-    state.extracted_text = ""
+    """Extract text from an image using multiple OCR engines."""
+    ocr_results = {}
+
     try:
         for image_path in state.image_path:
-            # Load the image
             image = Image.open(image_path)
 
-            # Extract text using OCR.
-            # We will do the OCR with two configurations to maximize text detetion.
-            # Non-sparse text with alignment correction
-            state.extracted_text += pytesseract.image_to_string(
-                image, lang="eng", config="--psm 1"
-            )
-            # Sparse text with alignment correction
-            state.extracted_text += pytesseract.image_to_string(
-                image, lang="eng", config="--psm 12"
-            )
-            state.extracted_text = remove_newline_characters(state.extracted_text)
-            if not state.extracted_text:
-                state.error = "OCR detected no text."
+            ocr_results["tesseract"] = run_tesseract(image)
+            ocr_results["easyocr"] = run_easyocr(image_path)
+            ocr_results["paddle"] = run_paddleocr(image_path)
+
+        state.extracted_text = json.dumps(ocr_results, indent=2)
+        if not any(ocr_results.values()):
+            state.error = "OCR engines detected no text."
+
     except Exception as e:
         state.error = f"OCR failed: {str(e)}"
 
