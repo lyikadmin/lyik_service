@@ -16,18 +16,19 @@ from .ocr_handler import run_paddleocr, run_tesseract
 from service_handlers.pincode_service import get_pincode_details
 from service_handlers.pincode_service.pin_code_models import PincodeDetails
 
+
 async def extract_text_from_image(
     state: DocumentProcessingState,
 ) -> DocumentProcessingState:
     """Extract text from an image using multiple OCR engines."""
-    ocr_results = {}
+    ocr_results = {"paddle": "", "tesseract": ""}
 
     try:
         for image_path in state.image_path:
             image = Image.open(image_path)
 
-            ocr_results["paddle"] = run_paddleocr(image_path)
-            ocr_results["tesseract"] = run_tesseract(image)
+            ocr_results["paddle"] += run_paddleocr(image_path)
+            ocr_results["tesseract"] += run_tesseract(image)
             # ocr_results["easyocr"] = run_easyocr(image_path)
 
         state.extracted_text = json.dumps(ocr_results, indent=2)
@@ -38,6 +39,7 @@ async def extract_text_from_image(
         state.error = f"OCR failed: {str(e)}"
 
     return state
+
 
 # Identify Document Type Step (Now with Context & One-Word Response)
 async def identify_document_type(
@@ -78,6 +80,7 @@ async def identify_document_type(
         state.error = "Could not detect document type"
 
     return state
+
 
 # Extract Data Step
 async def extract_relevant_data(
@@ -122,7 +125,7 @@ async def extract_relevant_data(
     return state
 
 
-# Validate Data Step 
+# Validate Data Step
 async def validate_document_data(
     state: DocumentProcessingState,
 ) -> DocumentProcessingState:
@@ -133,7 +136,7 @@ async def validate_document_data(
     if state.document_type not in document_models:
         state.error = f"Unrecognized document type: {state.document_type}"
         return state
-    
+
     try:
         # Try to add information if pincode exists
         extracted_data = state.extracted_data
