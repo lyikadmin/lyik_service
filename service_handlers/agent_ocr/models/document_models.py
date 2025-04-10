@@ -93,7 +93,7 @@ class DrivingLicense(DateConversionMixin):
 
 
 class Aadhaar(DateConversionMixin):
-    aadhaar_number: Union[str, None] = Field(None)
+    aadhaar_number: Union[str, None] = Field(None, description="It is a 12 digit number")
     full_name: Union[str, None] = Field(None)
     dob: Union[date, None] = Field(None)
     gender: Union[GenderEnum, None] = Field(None)
