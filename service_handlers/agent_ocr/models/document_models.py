@@ -73,8 +73,8 @@ class PAN(DateConversionMixin):
 class DrivingLicense(DateConversionMixin):
     license_number: Union[str, None] = None
     full_name: Union[str, None] = None
-    issue_date: Union[date, None] = None
-    expiry_date: Union[date, None] = None
+    date_of_issue: Union[date, None] = None
+    date_of_expiry: Union[date, None] = None
     category: Union[List[LicenseClass], None] = Field(
         None, description="can have multiple classes."
     )
@@ -95,7 +95,7 @@ class DrivingLicense(DateConversionMixin):
 class Aadhaar(DateConversionMixin):
     aadhaar_number: Union[str, None] = Field(None, description="It is a 12 digit number")
     full_name: Union[str, None] = Field(None)
-    dob: Union[date, None] = Field(None)
+    date_of_birth: Union[date, None] = Field(None)
     gender: Union[GenderEnum, None] = Field(None)
     full_address: Union[str, None] = Field(None)
     pin_code: Union[str, None] = Field(None, description="Zip code, 6 digit number.")
@@ -109,7 +109,7 @@ class Aadhaar(DateConversionMixin):
 class VoterId(DateConversionMixin):
     voter_epic_id: Union[str, None] = Field(None)
     full_name: Union[str, None] = Field(None)
-    dob: Union[date, None] = Field(None)
+    date_of_birth: Union[date, None] = Field(None)
     gender: Union[GenderEnum, None] = Field(None)
     full_address: Union[str, None] = Field(None)
     pin_code: Union[str, None] = Field(None, description="Zip code, 6 digit number.")
