@@ -33,7 +33,7 @@ class ServicesEnum(str, Enum):
     FaceDetection = "detect_face"
     OCR = "ocr"
     PinCodeDataExtraction = "pin_code_data_extraction"
-    MaskCredential= "mask_credential"
+    MaskCredential = "mask_credential"
 
 
 class ServiceManager:
@@ -221,32 +221,50 @@ class ServiceManager:
             )
 
     @staticmethod
-    def handle_mask_credential(files: List[UploadFile], additional_params: dict) -> StandardResponse:
-        """Masks the given credential. provided the type. Currently only supports Aadhaar type."""
+    def handle_mask_credential(
+        files: List[UploadFile], additional_params: dict
+    ) -> StandardResponse:
+        """
+        Masks the given credential. provided the type. Currently only supports Aadhaar type.
+        Returns:
+        [{
+            "file_name": f"masked_file_name.jpeg",
+            "file_base64": Base64 of file content,
+        }]
+        """
         logger.info("Initiating Credential Masking")
         if not files:
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
                 message="No file provided for masking",
             )
-        input_file = files[0]
-        suffix = Path(input_file.filename).suffix
+        files_response = list()
+        for file in files:
+            input_file = file
+            suffix = Path(input_file.filename).suffix
 
-        mask_value = additional_params.get("mask_value", None)
+            mask_value = additional_params.get("mask_value", None)
 
-        # Save the uploaded file temporarily in memory
-        with NamedTemporaryFile(delete=True, suffix=suffix) as tmp:
-            shutil.copyfileobj(input_file.file, tmp)
-            tmp.seek(0)  # Reset pointer to the beginning
+            # Save the uploaded file temporarily in memory
+            with NamedTemporaryFile(delete=True, suffix=suffix) as tmp:
+                shutil.copyfileobj(input_file.file, tmp)
+                tmp.seek(0)  # Reset pointer to the beginning
 
-            # Process the image and get base64 encoded result
-            encoded_file = mask_credential(image_path=tmp.name, mask_value=mask_value)
-
+                # Process the image and get base64 encoded result
+                encoded_file = mask_credential(
+                    image_path=tmp.name, mask_value=mask_value
+                )
+            encoded_file_response = {
+                "file_name": f"masked_{input_file.filename}",
+                "file_base64": encoded_file,
+            }
+            files_response.append(encoded_file_response)
         return StandardResponse(
             status=ResponseStatusEnum.success,
             message="File processed successfully",
-            result={"file_name": f"masked_{input_file.filename}", "file_base64": encoded_file},
+            result=files_response,
         )
+
 
 def _save_image(base64_string: str, file_path: str):
     # Add padding if necessary
