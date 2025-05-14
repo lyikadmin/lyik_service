@@ -186,35 +186,103 @@ def speech_to_text(audio_path: str, model_name="base") -> List[str]:
 
 
 def match_keywords(
-    transcribed_text: List[str], keywords: List[str], match_score: float = 0.65
+    transcribed_text: List[str],
+    keywords: List[str],
+    match_score: float = 0.65,
 ) -> bool:
     """
-    Returns True if the fraction of unique keywords found in transcribed_text
-    is at least match_score, else False.
+    Return True if ≥ `match_score` fraction of UNIQUE keywords are present.
 
-    Example:
-      match_keywords(
-         ['sir', 'tune', 'imagine', 'body', 'further', 'plane'],
-         ['cell', 'tune', 'imagine', 'border', 'fairly', 'plane'],
-         match_score=0.5
-      )
-      -> True (because we match 3 out of 6 keywords => 0.5 => 50%)
+    Handles:
+        • normal words ('hello') and case-insensitive matches
+        • spoken numbers ('eight' → '8')
+        • digits run together ('8187106')
+        • digits split across tokens ('8187', '106')
     """
     if not keywords:
-        # No keywords means there's nothing to match, so return False by default
         return False
 
-    transcribed_set = set(transcribed_text)
-    keyword_set = set(keywords)
+    # Canonicalise keywords and drop any '0'
+    keyword_set = {
+        kw for k in keywords
+        if (kw := _canonicalise(k)) != '0'
+    }
 
-    # Count how many unique keywords appear in transcribed_text
-    matched_count = sum(1 for kw in keyword_set if kw in transcribed_set)
+    tokens, digit_runs = _extract_tokens(transcribed_text)
 
-    # Fraction of keywords matched
-    fraction_matched = matched_count / len(keyword_set)
-
-    logger.debug(
-        f"Transcription match score: '{fraction_matched}'. {matched_count}/{len(keyword_set)} words match"
+    matched = sum(
+        1
+        for kw in keyword_set
+        if kw in tokens or any(kw in run for run in digit_runs)
     )
 
-    return fraction_matched >= match_score
+    fraction = matched / len(keyword_set) if keyword_set else 0
+
+    logger.debug(
+        "Transcription match score: %.2f (%d/%d keywords)",
+        fraction, matched, len(keyword_set)
+    )
+
+    return fraction >= match_score
+
+_WORD_TO_DIGIT = {
+    "one": "1",  "two": "2",   "three": "3", "four": "4", "five": "5",
+    "six": "6",  "seven": "7", "eight": "8", "nine": "9", "ten": "10",
+    # NB: ZERO deliberately omitted – we're ignoring it
+}
+
+def _canonicalise(token: str) -> str:
+    """Lower-case + map number-words → digits"""
+    token_lc = token.lower()
+    return _WORD_TO_DIGIT.get(token_lc, token_lc)
+
+def _split_digits(run: str) -> list[str]:
+    """
+    Break a string of digits into the shortest sequence of numbers drawn from 1-10,
+    skipping 0 entirely.
+
+    Examples
+    --------
+    '106'      -> ['10', '6']
+    '10106'    -> ['10', '10', '6']
+    '807'      -> ['8', '7']       # '0' is discarded
+    """
+    parts: list[str] = []
+    i = 0
+    while i < len(run):
+        # Look for '10'
+        if run[i] == '1' and i + 1 < len(run) and run[i + 1] == '0':
+            parts.append('10')
+            i += 2
+        else:
+            if run[i] != '0':          # ignore lone zeros
+                parts.append(run[i])
+            i += 1
+    return parts
+
+def _extract_tokens(text: List[str]) -> Tuple[set[str], list[str]]:
+    """
+    Build
+      • a set of canonical tokens (words + numbers 1-10);
+      • a list of full digit runs (for substring checks where useful).
+    """
+    tokens: set[str] = set()
+    digit_runs: list[str] = []
+
+    for word in text:
+        w = word.lower()
+
+        # always add the literal word itself
+        tokens.add(w)
+
+        # add its numeric equivalent if it's a number-word (1-10 only)
+        if w in _WORD_TO_DIGIT:
+            tokens.add(_WORD_TO_DIGIT[w])
+
+        # pick out every run of digits inside the word
+        for run in re.findall(r"\d+", w):
+            digit_runs.append(run)
+            tokens.add(run)            # whole run, e.g. '106'
+            tokens.update(_split_digits(run))   # e.g. '10', '6'
+
+    return tokens, digit_runs
