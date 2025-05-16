@@ -22,7 +22,7 @@ pydantic==2.10.3
 Pympler==1.1
 pyparsing==3.2.0
 python-dateutil==2.9.0.post0
-python-multipart==0.0.6
+python-multipart==0.0.20
 pyjwt[crypto]==2.6.0
 PyJWT==2.6.0
 pytz==2024.2
@@ -37,7 +37,7 @@ torchvision==0.20.1
 tqdm==4.67.0
 typing-extensions==4.12.2
 urllib3==2.2.3
-uvicorn==0.22.0
+uvicorn==0.34.2
 
 # liveness:
 av==13.1.0
@@ -54,3 +54,6 @@ google-genai==1.5.0
 # easyocr==1.7.2
 paddleocr==2.10.0
 paddlepaddle==3.0.0
+
+#pydantic agent
+pydantic-ai==0.2.4

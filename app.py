@@ -57,8 +57,9 @@ async def process_endpoint(
     try:
         logger.info(f"Received request for {service_name}")
 
-        if files:
-            await save_files(service_name=service_name, files=files)
+        # # previously saving files for audit purposes. Not anymore.
+        # if files:
+        #     await save_files(service_name=service_name, files=files)
 
         response = await ServiceManager.process_request(
             service_name=service_name,

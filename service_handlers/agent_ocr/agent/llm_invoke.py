@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-GEMINI_KEY = os.getenv("GEMINI_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 class LLMS(str, Enum):
     ollama = "OLLAMA"
@@ -29,7 +29,7 @@ async def query_llm(prompt: str, llm_type: LLMS = LLMS.gemini) -> str:
 
 async def query_gemini(prompt: str) -> str:
     client = genai.Client(
-        api_key=GEMINI_KEY,
+        api_key=GEMINI_API_KEY,
     )
 
     model = "gemini-2.0-flash"

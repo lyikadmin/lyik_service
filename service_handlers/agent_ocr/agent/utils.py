@@ -45,3 +45,15 @@ def remove_newline_characters(text: str) -> str:
     """Removes all '\n' and '\\n' and replaces it with ' ' blanks."""
     cleaned_text = text.replace("\n", " ").replace("\\n", " ")
     return cleaned_text
+
+def does_text_match_patterns(text: str, patterns: List[str]) -> bool:
+    """
+    Checks if any of the given patterns match the provided text.
+    This function iterates through a list of patterns and checks if any of them
+    match the input text using a case-insensitive regular expression search.
+    """
+    for pattern in patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            return True
+
+    return False

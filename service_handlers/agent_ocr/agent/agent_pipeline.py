@@ -9,12 +9,17 @@ import re
 from typing import List, Dict
 from langgraph.graph import StateGraph
 from .llm_invoke import query_llm
-from .utils import clean_llm_response, remove_newline_characters
+from .utils import clean_llm_response, remove_newline_characters, does_text_match_patterns
+from ..nodes import DOCUMENT_NODE_PATTERN_MAPPING, BaseNode
 
-from .ocr_handler import run_paddleocr, run_tesseract
+# from .ocr_handler import run_paddleocr, run_tesseract
+from .ocr_handler import TextExtractor
 
 from service_handlers.pincode_service import get_pincode_details
 from service_handlers.pincode_service.pin_code_models import PincodeDetails
+
+text_extractor = TextExtractor()
+
 
 
 async def extract_text_from_image(
@@ -27,9 +32,10 @@ async def extract_text_from_image(
         for image_path in state.image_path:
             image = Image.open(image_path)
 
-            ocr_results["paddle"] += run_paddleocr(image_path)
-            ocr_results["tesseract"] += run_tesseract(image)
-            # ocr_results["easyocr"] = run_easyocr(image_path)
+            # ocr_results["paddle"] += run_paddleocr(image_path)
+            ocr_results["paddle"] += text_extractor.extract_text(image_path)
+            # ocr_results["tesseract"] += run_tesseract(image)
+
 
         state.extracted_text = json.dumps(ocr_results, indent=2)
         if not any(ocr_results.values()):
@@ -42,7 +48,7 @@ async def extract_text_from_image(
 
 
 # Identify Document Type Step (Now with Context & One-Word Response)
-async def identify_document_type(
+async def identify_document_type_llm(
     state: DocumentProcessingState,
 ) -> DocumentProcessingState:
     """Identify the document type using LLM, enforcing structured response."""
@@ -78,6 +84,34 @@ async def identify_document_type(
 
     if state.document_type not in document_models.keys():
         state.error = "Could not detect document type"
+
+    return state
+
+
+async def identify_validate_and_extract_document_with_pattern(
+    state: DocumentProcessingState,
+) -> DocumentProcessingState:
+    """
+    1. Identify the document type using predetermined patterns
+    2. Calls appropriate Document Node, to get data adhering to Pydantic model associated with it.
+    """
+    if state.error:
+        return state  # Skip if there was an error in OCR
+
+    # Pydantic Model Scehmas for available documents
+    data = None
+    document_type = None
+    for pattern_list, DocumentNodeClass, document_type in DOCUMENT_NODE_PATTERN_MAPPING:
+        if does_text_match_patterns(state.extracted_text, pattern_list):
+            node: BaseNode = DocumentNodeClass()
+            data: BaseModel = await node.extract(ocr_text=state.extracted_text)
+            break
+
+    if data is None:
+        state.error = f"No Document Node found for data."
+    
+    state.extracted_data = data.model_dump()
+    state.document_type = document_type
 
     return state
 
@@ -171,18 +205,35 @@ def build_langraph_pipeline():
     graph = StateGraph(DocumentProcessingState)
 
     graph.add_node("OCR", extract_text_from_image)
-    graph.add_node("Identify Document Type", identify_document_type)
-    graph.add_node("Extract Data", extract_relevant_data)
+    graph.add_node("Identify Document Type Pattern", identify_validate_and_extract_document_with_pattern)
     graph.add_node("Validate Data", validate_document_data)
 
-    graph.add_edge("OCR", "Identify Document Type")
-    graph.add_edge("Identify Document Type", "Extract Data")
-    graph.add_edge("Extract Data", "Validate Data")
+    graph.add_edge("OCR", "Identify Document Type Pattern")
+    graph.add_edge("Identify Document Type Pattern", "Validate Data")
 
     graph.set_entry_point("OCR")
     graph.set_finish_point("Validate Data")
 
     return graph.compile()
+
+# # LangGraph Workflow
+# def build_langraph_pipeline():
+#     """Builds the LangGraph workflow for document processing."""
+#     graph = StateGraph(DocumentProcessingState)
+
+#     graph.add_node("OCR", extract_text_from_image)
+#     graph.add_node("Identify Document Type LLM", identify_document_type_llm)
+#     graph.add_node("Extract Data", extract_relevant_data)
+#     graph.add_node("Validate Data", validate_document_data)
+
+#     graph.add_edge("OCR", "Identify Document Type LLM")
+#     graph.add_edge("Identify Document Type LLM", "Extract Data")
+#     graph.add_edge("Extract Data", "Validate Data")
+
+#     graph.set_entry_point("OCR")
+#     graph.set_finish_point("Validate Data")
+
+#     return graph.compile()
 
 
 # Invoking Document Processing Agent pipeline
