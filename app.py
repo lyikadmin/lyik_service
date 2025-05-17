@@ -97,4 +97,8 @@ async def save_files(service_name: str, files: List[UploadFile]):
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True, log_level="debug")
+    # This is the safest way to start the server.
+    # It looks like the startup is sequential just like any python app
+    # NOTE: There are ways to instruct uvicorn to start the application with import string
+    # But in that case it looks like the python imports are not handled properly. Have to investigate this more
+    uvicorn.run(app=app, host="0.0.0.0", port=8000, reload=False, log_level="debug")

@@ -17,6 +17,7 @@ from service_handlers.agent_ocr import (
 from service_handlers.pincode_service import get_pincode_details
 from service_handlers.pincode_service.pin_code_models import PincodeDetails
 from service_handlers.mask_credential import mask_credential
+from service_handlers.signature_detect import detect_signature
 from enum import Enum
 from pathlib import Path
 import base64
@@ -34,6 +35,7 @@ class ServicesEnum(str, Enum):
     OCR = "ocr"
     PinCodeDataExtraction = "pin_code_data_extraction"
     MaskCredential = "mask_credential"
+    SignatureDetection = "detect_signature"
 
 
 class ServiceManager:
@@ -56,6 +58,8 @@ class ServiceManager:
             return ServiceManager.handle_pincode_data_extraction(additional_params)
         elif service_name == ServicesEnum.MaskCredential.value:
             return ServiceManager.handle_mask_credential(files, additional_params)
+        elif service_name == ServicesEnum.SignatureDetection.value:
+            return await ServiceManager.handle_signature_detection(files)
         else:
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
@@ -248,8 +252,7 @@ class ServiceManager:
             # Save the uploaded file temporarily in memory
             with NamedTemporaryFile(delete=True, suffix=suffix) as tmp:
                 shutil.copyfileobj(input_file.file, tmp)
-                tmp.seek(0)  # Reset pointer to the beginning
-
+                tmp.flush()
                 # Process the image and get base64 encoded result
                 encoded_file = mask_credential(
                     image_path=tmp.name, mask_value=mask_value
@@ -264,6 +267,26 @@ class ServiceManager:
             message="File processed successfully",
             result=files_response,
         )
+
+    async def handle_signature_detection(files: List[UploadFile]) -> StandardResponse:
+        if not files or len(files) == 0:
+            return StandardResponse(
+                status=ResponseStatusEnum.failure,
+                message="No file in input",
+                result=None,
+            )
+
+        f = files[0]
+        suffix = Path(f.filename).suffix
+        with NamedTemporaryFile(delete=True, suffix=suffix) as tmp:
+            shutil.copyfileobj(f.file, tmp)
+            tmp.flush()
+            resp = await detect_signature(image_file=tmp.name)
+            return StandardResponse(
+                status=ResponseStatusEnum.success,
+                message="See the result payload",
+                result=resp,
+            )
 
 
 def _save_image(base64_string: str, file_path: str):

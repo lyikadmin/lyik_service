@@ -3,8 +3,8 @@
 # from .utils import remove_newline_characters
 
 from paddleocr import PaddleOCR
-# from paddleocr.ppocr.utils.logging import get_logger
-# import logging
+from paddleocr.ppocr.utils.logging import get_logger
+import logging
 
 
 # def run_tesseract(image: Image.Image) -> str:
@@ -30,8 +30,8 @@ class TextExtractor:
 
     def __init__(self):
         # Set paddle ocr logging off ! It prints a whole of messages
-        # logger = get_logger()
-        # logger.setLevel(logging.ERROR)
+        logger = get_logger()
+        logger.setLevel(logging.ERROR)
 
         # Initialize the OCR object. It takes about .5 secs to initialize it
         # Hence initializing it once saves time
