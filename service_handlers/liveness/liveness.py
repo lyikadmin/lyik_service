@@ -6,6 +6,7 @@ from geopy.geocoders import Nominatim
 import av
 import whisper
 import logging
+import difflib
 from models import ResponseStatusEnum, StandardResponse
 
 logger = logging.getLogger(__name__)
@@ -188,7 +189,7 @@ def speech_to_text(audio_path: str, model_name="base") -> List[str]:
 def match_keywords(
     transcribed_text: List[str],
     keywords: List[str],
-    match_score: float = 0.65,
+    match_score: float = 0.80,
 ) -> bool:
     """
     Return True if ≥ `match_score` fraction of UNIQUE keywords are present.
@@ -203,32 +204,34 @@ def match_keywords(
         return False
 
     # Canonicalise keywords and drop any '0'
-    keyword_set = {
-        kw for k in keywords
-        if (kw := _canonicalise(k)) != '0'
-    }
+    keyword_str = "".join(keywords)
+    # keyword_set = {
+    #     kw for k in keywords
+    #     if (kw := _canonicalise(k)) != '0'
+    # }
 
-    tokens, digit_runs = _extract_tokens(transcribed_text)
+    digits = _extract_tokens(transcribed_text)
+    spoken_digits = "".join(digits)
 
-    matched = sum(
-        1
-        for kw in keyword_set
-        if kw in tokens or any(kw in run for run in digit_runs)
-    )
+    # matched = sum(
+    #     1
+    #     for kw in keyword_set
+    #     if kw in tokens or any(kw in run for run in digit_runs)
+    # )
 
-    fraction = matched / len(keyword_set) if keyword_set else 0
+    m = difflib.SequenceMatcher(None,keyword_str,spoken_digits)
+    # fraction = matched / len(keyword_set) if keyword_set else 0
 
     logger.debug(
-        "Transcription match score: %.2f (%d/%d keywords)",
-        fraction, matched, len(keyword_set)
+        "Transcription match score: %.2f (%s/%s keywords)",
+        m.ratio(), keyword_str, spoken_digits
     )
 
-    return fraction >= match_score
+    return m.ratio() >= match_score
 
 _WORD_TO_DIGIT = {
     "one": "1",  "two": "2",   "three": "3", "four": "4", "five": "5",
-    "six": "6",  "seven": "7", "eight": "8", "nine": "9", "ten": "10",
-    # NB: ZERO deliberately omitted – we're ignoring it
+    "six": "6",  "seven": "7", "eight": "8", "nine": "9", "zero": "0",
 }
 
 def _canonicalise(token: str) -> str:
@@ -260,29 +263,30 @@ def _split_digits(run: str) -> list[str]:
             i += 1
     return parts
 
-def _extract_tokens(text: List[str]) -> Tuple[set[str], list[str]]:
+def _extract_tokens(text: List[str]) -> List[str]:
     """
     Build
       • a set of canonical tokens (words + numbers 1-10);
       • a list of full digit runs (for substring checks where useful).
     """
-    tokens: set[str] = set()
-    digit_runs: list[str] = []
+    digits: list[str] = []
 
     for word in text:
         w = word.lower()
 
         # always add the literal word itself
-        tokens.add(w)
+        # If any non numerals are read should we consider. Right now no !
+        # tokens.add(w)
 
         # add its numeric equivalent if it's a number-word (1-10 only)
         if w in _WORD_TO_DIGIT:
-            tokens.add(_WORD_TO_DIGIT[w])
+            digits.add(_WORD_TO_DIGIT[w])
+            continue
 
         # pick out every run of digits inside the word
         for run in re.findall(r"\d+", w):
-            digit_runs.append(run)
-            tokens.add(run)            # whole run, e.g. '106'
-            tokens.update(_split_digits(run))   # e.g. '10', '6'
+            digits.append(run)
+            # tokens.add(run)            # whole run, e.g. '106'
+            # tokens.update(_split_digits(run))   # e.g. '10', '6'
 
-    return tokens, digit_runs
+    return digits
