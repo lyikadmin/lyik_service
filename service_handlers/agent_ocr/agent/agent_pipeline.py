@@ -26,20 +26,20 @@ async def extract_text_from_image(
     state: DocumentProcessingState,
 ) -> DocumentProcessingState:
     """Extract text from an image using multiple OCR engines."""
-    ocr_results = {"paddle": "", "tesseract": ""}
-
+    # ocr_results = {"paddle": "", "tesseract": ""}
+    ocr_results = ""
     try:
         for image_path in state.image_path:
             image = Image.open(image_path)
 
             # ocr_results["paddle"] += run_paddleocr(image_path)
-            ocr_results["paddle"] += text_extractor.extract_text(image_path)
+            ocr_results = text_extractor.extract_text(image_path)
             # ocr_results["tesseract"] += run_tesseract(image)
 
 
-        state.extracted_text = json.dumps(ocr_results, indent=2)
-        if not any(ocr_results.values()):
-            state.error = "OCR engines detected no text."
+        state.extracted_text = ocr_results 
+        # if not any(ocr_results.values()):
+            # state.error = "OCR engines detected no text."
 
     except Exception as e:
         state.error = f"OCR failed: {str(e)}"
