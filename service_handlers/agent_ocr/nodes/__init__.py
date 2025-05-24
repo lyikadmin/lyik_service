@@ -8,6 +8,10 @@ from .voterid_node import VoterIDNode
 from ..models import DocumentTypesEnum
 
 
+# NOTE:
+# We are not comparing the actual ID regex as this is not deterministic.
+# The passport may contain text that could match some other document and so on
+
 DOCUMENT_NODE_PATTERN_MAPPING: List[Tuple[List[str], BaseNode, str]] = [
     (
         ["INCOME\s*TAX\s*DEPARTMENT", "PERMANENT\s*ACCOUNT\s*NUMBER"],
@@ -25,7 +29,7 @@ DOCUMENT_NODE_PATTERN_MAPPING: List[Tuple[List[str], BaseNode, str]] = [
             "election",
             "voter",
             "constituency",
-            "[A-Z]{3}[0-9]{7}",
+            # "[A-Z]{3}[0-9]{7}",
         ],
         VoterIDNode,
         DocumentTypesEnum.voter_id,
@@ -37,8 +41,8 @@ DOCUMENT_NODE_PATTERN_MAPPING: List[Tuple[List[str], BaseNode, str]] = [
             "uid",
             "identification\s*authority",
             "unique\*identification\*authority",
-            "[0-9]{4}\s*[0-9]{4}\s*[0-9]{4}",
-            "[xX]{4}\s*[xX]{4}\s[0-9]{4}",
+            # "[0-9]{4}\s*[0-9]{4}\s*[0-9]{4}",
+            # "[xX]{4}\s*[xX]{4}\s[0-9]{4}",
         ],
         AadhaarNode,
         DocumentTypesEnum.aadhaar,
@@ -49,7 +53,7 @@ DOCUMENT_NODE_PATTERN_MAPPING: List[Tuple[List[str], BaseNode, str]] = [
             "REPUBLIC\s*OF\s*INDIA",
             "PASSPORT\s*OFFICE",
             "Ministry\s*of\s*External\s*Affairs",
-            "[A-Z][0-9]{7}",
+            # "[A-Z][0-9]{7}",
         ],
         PassportNode,
         DocumentTypesEnum.passport,

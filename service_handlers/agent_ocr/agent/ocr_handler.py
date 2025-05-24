@@ -44,7 +44,7 @@ class TextExtractor:
         if ret[0]:
             for line in ret[0]:
                 box, (text, score) = line
-                if score > 0.9:
+                if score > 0.8:
                     full_text += f"\n{text}"
 
         return full_text
