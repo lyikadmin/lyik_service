@@ -117,13 +117,13 @@ async def mask_aadhaar_paddle(image_path: str, mask_value: str) -> str:
     rotated_img = rotate_image(pil_img, angle)
 
     # Step 2: Prepare patterns
-    # cleaned = mask_value.replace(" ", "")
-    # patterns = [cleaned[i:i+4] for i in range(0, len(cleaned), 4)]
-    # compiled_patterns = [re.compile(p) for p in patterns]
+    cleaned = mask_value.replace(" ", "")
+    patterns = [cleaned[i:i+4] for i in range(0, len(cleaned), 4)]
+    compiled_patterns = [re.compile(p) for p in patterns]
 
-    compiled_patterns = [mask_value]
+    # compiled_patterns = [mask_value]
 
-    print(f"The compiled patterns are: {compiled_patterns}")
+    # print(f"The compiled patterns are: {compiled_patterns}")
 
     # Step 3: OCR and get matches
     np_img = np.array(rotated_img)
