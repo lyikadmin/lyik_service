@@ -54,6 +54,7 @@ google-genai==1.5.0
 # easyocr==1.7.2
 paddleocr==2.10.0
 paddlepaddle==3.0.0
+piexif==1.1.3
 
 #pydantic agent
 pydantic-ai==0.2.4

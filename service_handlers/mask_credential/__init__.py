@@ -1,1 +1,1 @@
-from .credentialmasker import mask_credential
+from .credential_masker import mask_credential
