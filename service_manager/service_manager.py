@@ -57,7 +57,7 @@ class ServiceManager:
         elif service_name == ServicesEnum.PinCodeDataExtraction.value:
             return ServiceManager.handle_pincode_data_extraction(additional_params)
         elif service_name == ServicesEnum.MaskCredential.value:
-            return ServiceManager.handle_mask_credential(files, additional_params)
+            return await ServiceManager.handle_mask_credential(files, additional_params)
         elif service_name == ServicesEnum.SignatureDetection.value:
             return await ServiceManager.handle_signature_detection(files)
         else:
@@ -225,7 +225,7 @@ class ServiceManager:
             )
 
     @staticmethod
-    def handle_mask_credential(
+    async def handle_mask_credential(
         files: List[UploadFile], additional_params: dict
     ) -> StandardResponse:
         """
@@ -254,7 +254,7 @@ class ServiceManager:
                 shutil.copyfileobj(input_file.file, tmp)
                 tmp.flush()
                 # Process the image and get base64 encoded result
-                encoded_file = mask_credential(
+                encoded_file = await mask_credential(
                     image_path=tmp.name, mask_value=mask_value
                 )
             encoded_file_response = {

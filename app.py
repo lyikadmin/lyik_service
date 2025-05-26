@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Form
 from fastapi.responses import JSONResponse
-from typing import List
+from typing import List, Any
 import uvicorn
 import traceback
 from models import StandardResponse, ResponseStatusEnum
@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import shutil
 import uuid
+
 
 logger = logging.getLogger()
 
@@ -35,23 +36,23 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 
-@app.post("/process", response_model=StandardResponse)
+@app.post("/process", response_model=StandardResponse | Any)
 async def process_endpoint(
     request: Request,
     service_name: ServicesEnum = Form(...),
-    license_key: str = Form(None),
+    license_key: str = Form(...),
     license_endpoint: str = Form(None),
     files: List[UploadFile] = File([]),
 ):
-    # # Verify the license key
-    # lm = LicenseManager(license_key=license_key, licensing_endpoint=license_endpoint)
-    # res, message = await lm.verify()
+    # Verify the license key
+    lm = LicenseManager(license_key=license_key)
+    res, message = await lm.verify()
 
-    # if not res:
-    #     return StandardResponse(
-    #         status=ResponseStatusEnum.failure.value,
-    #         message=str(message),
-    #     )
+    if not res:
+        return StandardResponse(
+            status=ResponseStatusEnum.failure.value,
+            message=str(message),
+        )
 
     # Call ServiceManager and get Response
     try:

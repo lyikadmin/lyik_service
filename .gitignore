@@ -13,3 +13,4 @@ __pycache__/
 build/
 *.vscode*
 .DS_Store  
+test_dir

@@ -57,3 +57,6 @@ paddlepaddle==3.0.0
 
 #pydantic agent
 pydantic-ai==0.2.4
+
+#mongodb
+pymongo==4.13.0
