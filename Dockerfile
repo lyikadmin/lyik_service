@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     git \
     git-lfs \
+    ccache \
     && rm -rf /var/lib/apt/lists/*
 
 # Initialize Git LFS
@@ -29,4 +30,4 @@ COPY . .
 EXPOSE 8000
 
 # Start FastAPI with Uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["python", "app.py"]

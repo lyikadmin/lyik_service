@@ -29,7 +29,7 @@ logger = logging.getLogger()
 
 
 class ServicesEnum(str, Enum):
-    SignatureExtraction = "signature_extraction"
+    # SignatureExtraction = "signature_extraction"
     LivenessCheck = "liveness"
     FaceDetection = "detect_face"
     OCR = "ocr"
