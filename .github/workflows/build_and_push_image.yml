@@ -33,7 +33,7 @@ jobs:
         run: |
           docker buildx create --use --driver=docker-container
           docker buildx inspect default --bootstrap
-          docker buildx build --file ./lyik_enterprise/Dockerfile --target lyik-server --tag ${{ env.IMAGE_REPO }}:${{ env.TAG }} --output type=docker ./lyik_enterprise
+          docker buildx build --file ./Dockerfile --target lyik-server --tag ${{ env.IMAGE_REPO }}:${{ env.TAG }} --output type=docker ./lyik_enterprise
 
       - name: Push Docker Image
         run: |
