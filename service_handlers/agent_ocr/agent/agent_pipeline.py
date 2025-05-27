@@ -9,7 +9,11 @@ import re
 from typing import List, Dict
 from langgraph.graph import StateGraph
 from .llm_invoke import query_llm
-from .utils import clean_llm_response, remove_newline_characters, does_text_match_patterns
+from .utils import (
+    clean_llm_response,
+    remove_newline_characters,
+    does_text_match_patterns,
+)
 from ..nodes import DOCUMENT_NODE_PATTERN_MAPPING, BaseNode
 
 # from .ocr_handler import run_paddleocr, run_tesseract
@@ -19,7 +23,6 @@ from service_handlers.pincode_service import get_pincode_details
 from service_handlers.pincode_service.pin_code_models import PincodeDetails
 
 text_extractor = TextExtractor()
-
 
 
 async def extract_text_from_image(
@@ -33,13 +36,12 @@ async def extract_text_from_image(
             image = Image.open(image_path)
 
             # ocr_results["paddle"] += run_paddleocr(image_path)
-            ocr_results = text_extractor.extract_text(image_path)
+            ocr_results += text_extractor.extract_text(image_path)
             # ocr_results["tesseract"] += run_tesseract(image)
 
-
-        state.extracted_text = ocr_results 
+        state.extracted_text = ocr_results
         # if not any(ocr_results.values()):
-            # state.error = "OCR engines detected no text."
+        # state.error = "OCR engines detected no text."
 
     except Exception as e:
         state.error = f"OCR failed: {str(e)}"
@@ -109,7 +111,7 @@ async def identify_validate_and_extract_document_with_pattern(
 
     if data is None:
         state.error = f"No Document Node found for data."
-    
+
     state.extracted_data = data.model_dump()
     state.document_type = document_type
 
@@ -205,7 +207,10 @@ def build_langraph_pipeline():
     graph = StateGraph(DocumentProcessingState)
 
     graph.add_node("OCR", extract_text_from_image)
-    graph.add_node("Identify Document Type Pattern", identify_validate_and_extract_document_with_pattern)
+    graph.add_node(
+        "Identify Document Type Pattern",
+        identify_validate_and_extract_document_with_pattern,
+    )
     graph.add_node("Validate Data", validate_document_data)
 
     graph.add_edge("OCR", "Identify Document Type Pattern")
@@ -215,6 +220,7 @@ def build_langraph_pipeline():
     graph.set_finish_point("Validate Data")
 
     return graph.compile()
+
 
 # # LangGraph Workflow
 # def build_langraph_pipeline():

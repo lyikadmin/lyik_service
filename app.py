@@ -69,7 +69,7 @@ async def process_endpoint(
         )
         return response
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         return StandardResponse(
             status=ResponseStatusEnum.failure,
             message="Services has failed. Please contact lyik support.",

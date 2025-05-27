@@ -9,15 +9,28 @@ from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
+
 # Exceptions
-class TokenNotFound(Exception): pass
-class LicenseNotFound(Exception): pass
-class InvalidToken(Exception): pass
-class InvalidLicense(Exception): pass
+class TokenNotFound(Exception):
+    pass
+
+
+class LicenseNotFound(Exception):
+    pass
+
+
+class InvalidToken(Exception):
+    pass
+
+
+class InvalidLicense(Exception):
+    pass
+
 
 # TTL Cache for license info: max 100 items, 24hr TTL
 LICENSE_CACHE = TTLCache(maxsize=100, ttl=86400)
 MESSAGE = str
+
 
 class LicenseManager:
     def __init__(self, license_key):
@@ -58,7 +71,7 @@ class LicenseManager:
             return False, f"Unexpected error: {str(e)}"
 
     async def fetch(self):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(60, connect=60)) as client:
             res = await client.post(
                 f"{self.LICENSING_ENDPOINT}/verify_license",
                 json={"key": self.LICENSE_KEY},
@@ -75,7 +88,7 @@ class LicenseManager:
     async def _get_payload(self, token: str):
         try:
             jwt_header = jwt.get_unverified_header(token)
-            kid = jwt_header.get('kid')
+            kid = jwt_header.get("kid")
             if not kid:
                 raise InvalidToken("Token verification failed due to missing 'kid'")
 
@@ -83,23 +96,27 @@ class LicenseManager:
                 res = await client.post(
                     f"{self.LICENSING_ENDPOINT}/fetch_secret",
                     json={"kid": kid},
-                    headers={'Content-Type': 'application/json'}
+                    headers={"Content-Type": "application/json"},
                 )
 
             response = res.json()
-            secret = response['public_key']
+            secret = response["public_key"]
             return jwt.decode(token, secret, algorithms=["RS256"])
 
         except jwt.ExpiredSignatureError:
             raise InvalidToken("Token has expired")
         except (jwt.InvalidTokenError, Exception) as e:
-            raise InvalidToken(f"Invalid token or payload could not be decoded - {str(e)}")
+            raise InvalidToken(
+                f"Invalid token or payload could not be decoded - {str(e)}"
+            )
 
     def _is_live(self, valid_to) -> bool:
         valid_to_date = self.to_datetime(valid_to)
         days_remaining = (valid_to_date - datetime.now()).days
         if days_remaining < 0 and days_remaining >= -7:
-            logger.warning(f"Warning!! - License expired, Server will shutdown in {7 - days_remaining} days.")
+            logger.warning(
+                f"Warning!! - License expired, Server will shutdown in {7 - days_remaining} days."
+            )
         return days_remaining >= -7
 
     def _is_premature(self, valid_from) -> bool:
