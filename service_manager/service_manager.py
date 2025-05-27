@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile
 import shutil
 from typing import List, Union
 from io import BytesIO
-from service_handlers.signature_ml.utils.signature_extract import extract_signature
+# from service_handlers.signature_ml.utils.signature_extract import extract_signature
 from service_handlers.liveness import process_liveness
 from service_handlers.face_detect import detect_face
 from service_handlers.agent_ocr import (
@@ -46,10 +46,10 @@ class ServiceManager:
         form = await request.form()
         additional_params = {k: v for k, v in form.items() if k != "service_name"}
 
-        if service_name == ServicesEnum.SignatureExtraction.value:
-            return ServiceManager.handle_signature_extraction(files)
-        elif service_name == ServicesEnum.LivenessCheck.value:
+        if service_name == ServicesEnum.LivenessCheck.value:
             return ServiceManager.handle_liveness_check(files, additional_params)
+        # elif service_name == ServicesEnum.SignatureExtraction.value:
+        #     return ServiceManager.handle_signature_extraction(files)
         elif service_name == ServicesEnum.FaceDetection.value:
             return ServiceManager.handle_face_detection(files)
         elif service_name == ServicesEnum.OCR.value:
@@ -66,51 +66,51 @@ class ServiceManager:
                 message=f"Unknown service: {service_name}",
             )
 
-    @staticmethod
-    def handle_signature_extraction(files: List[UploadFile]):
-        logger.info("Initiating Signature Extraction")
-        if not files:
-            return StandardResponse(
-                status=ResponseStatusEnum.failure.value,
-                message="No file provided for signature extraction.",
-            )
+    # @staticmethod
+    # def handle_signature_extraction(files: List[UploadFile]):
+    #     logger.info("Initiating Signature Extraction")
+    #     if not files:
+    #         return StandardResponse(
+    #             status=ResponseStatusEnum.failure.value,
+    #             message="No file provided for signature extraction.",
+    #         )
 
-        input_file = files[0]
+    #     input_file = files[0]
 
-        with NamedTemporaryFile(delete=True, suffix=".png") as temp_file:
-            shutil.copyfileobj(input_file.file, temp_file)
-            temp_file.flush()
+    #     with NamedTemporaryFile(delete=True, suffix=".png") as temp_file:
+    #         shutil.copyfileobj(input_file.file, temp_file)
+    #         temp_file.flush()
 
-            extracted_signature_response: Union[Union[BytesIO, None], str] = (
-                extract_signature(temp_file.name)
-            )
+    #         extracted_signature_response: Union[Union[BytesIO, None], str] = (
+    #             extract_signature(temp_file.name)
+    #         )
 
-            if extracted_signature_response is None:
-                return StandardResponse(
-                    status=ResponseStatusEnum.failure.value,
-                    message="No signature detected. Could not extract.",
-                )
+    #         if extracted_signature_response is None:
+    #             return StandardResponse(
+    #                 status=ResponseStatusEnum.failure.value,
+    #                 message="No signature detected. Could not extract.",
+    #             )
 
-            # Returns string error message if the coverage is not as expected.
-            # Returns strign erorr if multiple signatures are detected.
-            if isinstance(extracted_signature_response, str):
-                return StandardResponse(
-                    status=ResponseStatusEnum.failure.value,
-                    message=extracted_signature_response,
-                )
+    #         # Returns string error message if the coverage is not as expected.
+    #         # Returns strign erorr if multiple signatures are detected.
+    #         if isinstance(extracted_signature_response, str):
+    #             return StandardResponse(
+    #                 status=ResponseStatusEnum.failure.value,
+    #                 message=extracted_signature_response,
+    #             )
 
-            # Encode binary data as Base64
-            base64_signature = base64.b64encode(
-                extracted_signature_response.getvalue()
-            ).decode("utf-8")
+    #         # Encode binary data as Base64
+    #         base64_signature = base64.b64encode(
+    #             extracted_signature_response.getvalue()
+    #         ).decode("utf-8")
 
-            _save_image(base64_signature, "extracted_signature.png")
+    #         _save_image(base64_signature, "extracted_signature.png")
 
-            return StandardResponse(
-                status=ResponseStatusEnum.success,
-                message="Signature successfully extracted.",
-                result={"signature_image": base64_signature},
-            )
+    #         return StandardResponse(
+    #             status=ResponseStatusEnum.success,
+    #             message="Signature successfully extracted.",
+    #             result={"signature_image": base64_signature},
+    #         )
 
     @staticmethod
     def handle_face_detection(files: List[UploadFile]) -> StandardResponse:
