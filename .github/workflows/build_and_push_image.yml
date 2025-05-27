@@ -29,6 +29,10 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
+      - name: Cleanup Docker System
+        run: |
+          docker system prune -a -f
+
       - name: Build Docker Image
         run: |
           docker buildx create --use --driver=docker-container
