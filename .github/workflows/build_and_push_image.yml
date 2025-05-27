@@ -35,10 +35,8 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker buildx create --use --driver=docker-container
-          docker buildx inspect default --bootstrap
-          docker buildx build --file ./Dockerfile --tag ${{ env.IMAGE_REPO }}:${{ env.TAG }} --output type=docker .
-
+          docker build -f ./Dockerfile -t ${{ env.IMAGE_REPO }}:${{ env.TAG }} .
+          
       - name: Push Docker Image
         run: |
           docker tag ${{ env.IMAGE_REPO }}:${{ env.TAG }} ${{ secrets.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_REPO }}:latest
