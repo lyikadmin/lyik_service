@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     git \
     git-lfs \
     ccache \
+    tesseract-ocr \
+    libtesseract-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Initialize Git LFS
