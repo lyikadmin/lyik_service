@@ -280,7 +280,7 @@ def _extract_tokens(text: List[str]) -> List[str]:
 
         # add its numeric equivalent if it's a number-word (1-10 only)
         if w in _WORD_TO_DIGIT:
-            digits.add(_WORD_TO_DIGIT[w])
+            digits.append(_WORD_TO_DIGIT[w])
             continue
 
         # pick out every run of digits inside the word
