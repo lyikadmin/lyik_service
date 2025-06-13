@@ -111,6 +111,9 @@ def match_captcha_keywords(
         )
         if match_found:
             return match_found, transcribed_text
+        elif not transcribed_text:
+            transcribed_text = ["No audio/spoken text detected in the video"]
+            return match_found, transcribed_text
         else:
             transcribed_text = [
                 f"Failed Captcha matching. Transcription: '{transcribed_text}'. Captcha: '{keyword_list}'"
@@ -219,25 +222,38 @@ def match_keywords(
     #     if kw in tokens or any(kw in run for run in digit_runs)
     # )
 
-    m = difflib.SequenceMatcher(None,keyword_str,spoken_digits)
+    m = difflib.SequenceMatcher(None, keyword_str, spoken_digits)
     # fraction = matched / len(keyword_set) if keyword_set else 0
 
     logger.debug(
         "Transcription match score: %.2f (%s/%s keywords)",
-        m.ratio(), keyword_str, spoken_digits
+        m.ratio(),
+        keyword_str,
+        spoken_digits,
     )
 
     return m.ratio() >= match_score
 
+
 _WORD_TO_DIGIT = {
-    "one": "1",  "two": "2",   "three": "3", "four": "4", "five": "5",
-    "six": "6",  "seven": "7", "eight": "8", "nine": "9", "zero": "0",
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "five": "5",
+    "six": "6",
+    "seven": "7",
+    "eight": "8",
+    "nine": "9",
+    "zero": "0",
 }
+
 
 def _canonicalise(token: str) -> str:
     """Lower-case + map number-words → digits"""
     token_lc = token.lower()
     return _WORD_TO_DIGIT.get(token_lc, token_lc)
+
 
 def _split_digits(run: str) -> list[str]:
     """
@@ -254,14 +270,15 @@ def _split_digits(run: str) -> list[str]:
     i = 0
     while i < len(run):
         # Look for '10'
-        if run[i] == '1' and i + 1 < len(run) and run[i + 1] == '0':
-            parts.append('10')
+        if run[i] == "1" and i + 1 < len(run) and run[i + 1] == "0":
+            parts.append("10")
             i += 2
         else:
-            if run[i] != '0':          # ignore lone zeros
+            if run[i] != "0":  # ignore lone zeros
                 parts.append(run[i])
             i += 1
     return parts
+
 
 def _extract_tokens(text: List[str]) -> List[str]:
     """
