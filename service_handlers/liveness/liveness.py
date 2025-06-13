@@ -112,7 +112,7 @@ def match_captcha_keywords(
         if match_found:
             return match_found, transcribed_text
         elif not transcribed_text:
-            transcribed_text = ["No audio/spoken text detected in the video"]
+            transcribed_text = ["No audio/spoken text detected in the video. Check your microphone and try again."]
             return match_found, transcribed_text
         else:
             transcribed_text = [
