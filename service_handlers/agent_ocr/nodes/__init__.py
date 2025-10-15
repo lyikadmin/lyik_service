@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Type
 from ._base_node import BaseNode
 from ..models import DocumentTypesEnum
 
@@ -64,32 +64,11 @@ DOCUMENT_NODE_PATTERN_MAPPING: List[Tuple[List[str], BaseNode, str]] = [
     ),
 ]
 
-
-KNOWN_DOCUMENT_NODE_MAPPING: List[BaseNode, str] = [
-    # Only known document: 
-    (
-        VisaNode,
-        DocumentTypesEnum.visa,
-    ),
-    # Not just known document types:
-    (
-        PANNode,
-        DocumentTypesEnum.pan,
-    ),
-    (
-        DrivingLicenseNode,
-        DocumentTypesEnum.driving_license,
-    ),
-    (
-        VoterIDNode,
-        DocumentTypesEnum.voter_id,
-    ),
-    (
-        AadhaarNode,
-        DocumentTypesEnum.aadhaar,
-    ),
-    (
-        PassportNode,
-        DocumentTypesEnum.passport,
-    ),
-]
+KNOWN_DOCUMENT_NODE_MAPPING: Dict[DocumentTypesEnum, Type[BaseNode]] = {
+    DocumentTypesEnum.visa: VisaNode,
+    DocumentTypesEnum.pan: PANNode,
+    DocumentTypesEnum.driving_license: DrivingLicenseNode,
+    DocumentTypesEnum.voter_id: VoterIDNode,
+    DocumentTypesEnum.aadhaar: AadhaarNode,
+    DocumentTypesEnum.passport: PassportNode,
+}
