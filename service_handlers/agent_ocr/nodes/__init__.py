@@ -1,11 +1,15 @@
 from typing import List, Tuple
 from ._base_node import BaseNode
+from ..models import DocumentTypesEnum
+
 from .aadhaar_node import AadhaarNode
 from .dl_node import DrivingLicenseNode
 from .pan_node import PANNode
 from .passport_node import PassportNode
 from .voterid_node import VoterIDNode
-from ..models import DocumentTypesEnum
+from .visa_node import VisaNode
+
+
 
 
 # NOTE:
@@ -55,6 +59,36 @@ DOCUMENT_NODE_PATTERN_MAPPING: List[Tuple[List[str], BaseNode, str]] = [
             "Ministry\s*of\s*External\s*Affairs",
             # "[A-Z][0-9]{7}",
         ],
+        PassportNode,
+        DocumentTypesEnum.passport,
+    ),
+]
+
+
+KNOWN_DOCUMENT_NODE_MAPPING: List[BaseNode, str] = [
+    # Only known document: 
+    (
+        VisaNode,
+        DocumentTypesEnum.visa,
+    ),
+    # Not just known document types:
+    (
+        PANNode,
+        DocumentTypesEnum.pan,
+    ),
+    (
+        DrivingLicenseNode,
+        DocumentTypesEnum.driving_license,
+    ),
+    (
+        VoterIDNode,
+        DocumentTypesEnum.voter_id,
+    ),
+    (
+        AadhaarNode,
+        DocumentTypesEnum.aadhaar,
+    ),
+    (
         PassportNode,
         DocumentTypesEnum.passport,
     ),

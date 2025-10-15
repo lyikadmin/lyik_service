@@ -14,7 +14,7 @@ from .utils import (
     remove_newline_characters,
     does_text_match_patterns,
 )
-from ..nodes import DOCUMENT_NODE_PATTERN_MAPPING, BaseNode
+from ..nodes import DOCUMENT_NODE_PATTERN_MAPPING, KNOWN_DOCUMENT_NODE_MAPPING, BaseNode
 
 # from .ocr_handler import run_paddleocr, run_tesseract
 from .ocr_handler import TextExtractor
@@ -242,9 +242,66 @@ def build_langraph_pipeline():
 #     return graph.compile()
 
 
+# LangGraph Workflow
+# def build_langraph_pipeline_for_known_document():
+#     """Builds the LangGraph workflow for document processing."""
+#     graph = StateGraph(DocumentProcessingState)
+
+#     graph.add_node("OCR", extract_text_from_image)
+
+#     graph.add_node(
+#         "Identify Document Type Pattern",
+#         identify_validate_and_extract_document_with_pattern,
+#     )
+
+#     graph.add_node("Validate Data", validate_document_data)
+
+#     graph.add_edge("OCR", "Identify Document Type Pattern")
+#     graph.add_edge("Identify Document Type Pattern", "Validate Data")
+
+#     graph.set_entry_point("OCR")
+#     graph.set_finish_point("Validate Data")
+
+#     return graph.compile()
+
 # Invoking Document Processing Agent pipeline
 async def process_document(image_path: List[str]) -> Dict:
     """Runs the LangGraph pipeline for a single document."""
     pipeline = build_langraph_pipeline()
     state = DocumentProcessingState(image_path=image_path)
     return await pipeline.ainvoke(state)
+
+
+async def process_known_document(image_path: List[str], ocr_document_type: str) -> Dict:
+    state = DocumentProcessingState(image_path=image_path)
+    if ocr_document_type not in document_models.keys():
+        state.error = "Could not detect document type"
+        return state
+    
+    # Step 1: Extract the text from document
+    state: DocumentProcessingState = await extract_text_from_image(state)
+
+    # Step 2: Check if document type is valid, and convert the data to expected format
+    state.document_type = document_type
+    for DocumentNodeClass, document_type in KNOWN_DOCUMENT_NODE_MAPPING:
+        if document_type == ocr_document_type:
+            node: BaseNode = DocumentNodeClass()
+            data: BaseModel = await node.extract(ocr_text=state.extracted_text)
+            break
+
+    if data is None:
+        state.error = f"No Document Node found for data."
+
+    state.extracted_data = data.model_dump()
+
+    # Step 3: Validate the document data
+    state = validate_document_data(state)
+
+    return state
+
+
+
+    
+
+    
+

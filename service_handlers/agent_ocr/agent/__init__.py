@@ -1,1 +1,1 @@
-from .agent_pipeline import process_document
+from .agent_pipeline import process_document, process_known_document

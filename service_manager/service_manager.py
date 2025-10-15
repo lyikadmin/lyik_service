@@ -10,6 +10,7 @@ from service_handlers.liveness import process_liveness
 from service_handlers.face_detect import detect_face
 from service_handlers.agent_ocr import (
     process_document,
+    process_known_document,
     OCRResponse,
     DocumentProcessingState,
     convert_pydantic_to_json,
@@ -33,6 +34,7 @@ class ServicesEnum(str, Enum):
     LivenessCheck = "liveness"
     FaceDetection = "detect_face"
     OCR = "ocr"
+    KNOWN_OCR = "known_ocr"
     PinCodeDataExtraction = "pin_code_data_extraction"
     MaskCredential = "mask_credential"
     SignatureDetection = "detect_signature"
@@ -54,6 +56,8 @@ class ServiceManager:
             return ServiceManager.handle_face_detection(files)
         elif service_name == ServicesEnum.OCR.value:
             return await ServiceManager.handle_ocr(files)
+        elif service_name == ServicesEnum.KNOWN_OCR.value:
+            return await ServiceManager.handle_known_ocr(files, additional_params)
         elif service_name == ServicesEnum.PinCodeDataExtraction.value:
             return ServiceManager.handle_pincode_data_extraction(additional_params)
         elif service_name == ServicesEnum.MaskCredential.value:
@@ -171,7 +175,7 @@ class ServiceManager:
         if not files:
             return StandardResponse(
                 status=ResponseStatusEnum.failure.value,
-                message="No file provided for face detection",
+                message="No file provided for ocr",
             )
         image_paths = []
         try:
@@ -183,6 +187,50 @@ class ServiceManager:
                     image_paths.append(tmp.name)
 
             result = await process_document(image_path=image_paths)
+            result = DocumentProcessingState.model_validate(result)
+        finally:
+            for path in image_paths:
+                try:
+                    os.remove(path)
+                except OSError as e:
+                    print(f"Error deleting temporary file {path}: {e}")
+
+        print(convert_pydantic_to_json(result))
+        if not result.validated_data:
+            return StandardResponse(
+                status=ResponseStatusEnum.failure, message=result.error
+            )
+        return StandardResponse(
+            status=ResponseStatusEnum.success,
+            message=f"Detected document of type '{result.document_type}' successfully",
+            result=OCRResponse(
+                document_type=result.document_type, validated_data=result.validated_data
+            ),
+        )
+
+    async def handle_known_ocr(files: List[UploadFile], additional_params: dict) -> StandardResponse:
+        logger.info("Initiating OCR")
+        if not files:
+            return StandardResponse(
+                status=ResponseStatusEnum.failure.value,
+                message="No files provided for OCR.",
+            )
+        image_paths = []
+        ocr_document_type = additional_params.get("document_type", None)
+        if not ocr_document_type:
+            return StandardResponse(
+                status=ResponseStatusEnum.failure.value,
+                message="No document type provided",
+            )
+        try:
+            for file in files:
+                contents = await file.read()
+                file_extension = os.path.splitext(file.filename)[1]
+                with NamedTemporaryFile(delete=False, suffix=file_extension) as tmp:
+                    tmp.write(contents)
+                    image_paths.append(tmp.name)
+
+            result = await process_known_document(image_path=image_paths, ocr_document_type=ocr_document_type)
             result = DocumentProcessingState.model_validate(result)
         finally:
             for path in image_paths:

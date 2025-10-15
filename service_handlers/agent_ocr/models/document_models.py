@@ -118,3 +118,24 @@ class VoterId(DateConversionMixin):
     city: Union[str, None] = Field(None)
     country: Union[str, None] = Field(None)
     model_config = ConfigDict(extra="allow")
+
+class Visa(DateConversionMixin):
+    # document_type: str = "Visa"
+    issuing_country: str | None = None
+    visa_number: str | None = None
+    visa_code: str | None = None
+    place_of_issue: str | None = None
+    holder_name: str | None = None
+    surname: str | None = None
+    given_names: str | None = None
+    passport_number: str | None = None
+    date_of_birth: str | None = None
+    sex: str | None = None
+    nationality: str | None = None
+    valid_from: str | None = None
+    valid_until: str | None = None
+    entries: str | None = None
+    issuing_authority: str | None = None
+    annotations: str | None = None
+    mrz: str | None = None
+    model_config = ConfigDict(extra="allow")
