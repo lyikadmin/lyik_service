@@ -122,6 +122,7 @@ class VoterId(DateConversionMixin):
 class Visa(DateConversionMixin):
     # document_type: str = "Visa"
     issuing_country: str | None = None
+    issuing_country_code: str | None = Field(...,description="Derive the ISO 3166-1 alpha-3 Country code from issuing_country")
     visa_number: str | None = None
     visa_code: str | None = None
     place_of_issue: str | None = None
