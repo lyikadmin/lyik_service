@@ -2,11 +2,11 @@ from ..models import DocumentProcessingState
 import httpx
 from PIL import Image
 import pytesseract
-from ..models import document_models
+from ..models import document_models, DocumentTypesEnum
 import json
 from pydantic import BaseModel, ValidationError
 import re
-from typing import List, Dict
+from typing import List, Dict, Type
 from langgraph.graph import StateGraph
 from .llm_invoke import query_llm
 from .utils import (
@@ -14,7 +14,7 @@ from .utils import (
     remove_newline_characters,
     does_text_match_patterns,
 )
-from ..nodes import DOCUMENT_NODE_PATTERN_MAPPING, BaseNode
+from ..nodes import DOCUMENT_NODE_PATTERN_MAPPING, KNOWN_DOCUMENT_NODE_MAPPING, BaseNode
 
 # from .ocr_handler import run_paddleocr, run_tesseract
 from .ocr_handler import TextExtractor
@@ -241,10 +241,83 @@ def build_langraph_pipeline():
 
 #     return graph.compile()
 
-
 # Invoking Document Processing Agent pipeline
 async def process_document(image_path: List[str]) -> Dict:
     """Runs the LangGraph pipeline for a single document."""
     pipeline = build_langraph_pipeline()
     state = DocumentProcessingState(image_path=image_path)
+    return await pipeline.ainvoke(state)
+
+### Specific for known documents
+
+def build_langraph_known_pipeline():
+    """
+    Known-doc pipeline: OCR → Extract Known → Validate
+    Assumes state.document_type is already set to a DocumentTypesEnum.
+    """
+    graph = StateGraph(DocumentProcessingState)
+
+    graph.add_node("OCR", extract_text_from_image)
+    graph.add_node("Extract Known", extract_known_document_node)
+    graph.add_node("Validate", validate_document_data)
+
+    graph.add_edge("OCR", "Extract Known")
+    graph.add_edge("Extract Known", "Validate")
+
+    graph.set_entry_point("OCR")
+    graph.set_finish_point("Validate")
+    return graph.compile()
+
+def _coerce_document_type(value: str):
+    try:
+        return DocumentTypesEnum(value)
+    except Exception:
+        try:
+            return DocumentTypesEnum[value]
+        except Exception:
+            return None
+
+async def extract_known_document_node(
+    state: DocumentProcessingState,
+) -> DocumentProcessingState:
+    """
+    Use state.document_type (enum) to select the BaseNode from KNOWN_DOCUMENT_NODE_MAPPING,
+    run extraction, and stash the model_dump() into state.extracted_data.
+    """
+    if state.error:
+        return state
+
+    if not state.document_type:
+        state.error = "document_type is required for known-document extraction."
+        return state
+
+    NodeClass: Type[BaseNode] | None = KNOWN_DOCUMENT_NODE_MAPPING.get(state.document_type)
+    if NodeClass is None:
+        state.error = f"No Document Node found for {state.document_type!s}."
+        return state
+
+    try:
+        node = NodeClass()
+        model_obj: BaseModel = await node.extract(ocr_text=state.extracted_text)
+        state.extracted_data = model_obj.model_dump()
+    except Exception as e:
+        state.error = f"Known-document extract failed: {e}"
+
+    return state
+
+async def process_known_document(image_path: List[str], ocr_document_type: str) -> Dict:
+    """
+    Entry for known-doc flow using a LangGraph pipeline.
+    """
+    state = DocumentProcessingState(image_path=image_path)
+
+    coerced = _coerce_document_type(ocr_document_type.strip())
+    if coerced is None or coerced not in document_models.keys():
+        state.error = f"Could not detect document type: {ocr_document_type!r}"
+        return state
+
+    state.document_type = coerced
+
+    pipeline = build_langraph_known_pipeline()
+    # Graph will: OCR → Extract Known → Validate
     return await pipeline.ainvoke(state)

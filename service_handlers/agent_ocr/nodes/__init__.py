@@ -1,11 +1,15 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Type
 from ._base_node import BaseNode
+from ..models import DocumentTypesEnum
+
 from .aadhaar_node import AadhaarNode
 from .dl_node import DrivingLicenseNode
 from .pan_node import PANNode
 from .passport_node import PassportNode
 from .voterid_node import VoterIDNode
-from ..models import DocumentTypesEnum
+from .visa_node import VisaNode
+
+
 
 
 # NOTE:
@@ -59,3 +63,12 @@ DOCUMENT_NODE_PATTERN_MAPPING: List[Tuple[List[str], BaseNode, str]] = [
         DocumentTypesEnum.passport,
     ),
 ]
+
+KNOWN_DOCUMENT_NODE_MAPPING: Dict[DocumentTypesEnum, Type[BaseNode]] = {
+    DocumentTypesEnum.visa: VisaNode,
+    DocumentTypesEnum.pan: PANNode,
+    DocumentTypesEnum.driving_license: DrivingLicenseNode,
+    DocumentTypesEnum.voter_id: VoterIDNode,
+    DocumentTypesEnum.aadhaar: AadhaarNode,
+    DocumentTypesEnum.passport: PassportNode,
+}
