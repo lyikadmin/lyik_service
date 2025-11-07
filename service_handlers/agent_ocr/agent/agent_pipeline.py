@@ -16,13 +16,10 @@ from .utils import (
 )
 from ..nodes import DOCUMENT_NODE_PATTERN_MAPPING, KNOWN_DOCUMENT_NODE_MAPPING, BaseNode
 
-# from .ocr_handler import run_paddleocr, run_tesseract
-from .ocr_handler import TextExtractor, process_file
+from .ocr_handler import process_file
 
 from service_handlers.pincode_service import get_pincode_details
 from service_handlers.pincode_service.pin_code_models import PincodeDetails
-
-# text_extractor = TextExtractor()
 
 
 async def extract_text_from_documents(
