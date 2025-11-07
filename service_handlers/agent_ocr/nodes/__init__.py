@@ -10,7 +10,7 @@ from .voterid_node import VoterIDNode
 from .visa_node import VisaNode
 from .flight_ticket_node import FlightTicketNode
 from .travel_insurance_node import TravelInsuranceNode
-from .accomodation_booking_node import AccommodationBookingNode
+from .accommodation_booking_node import AccommodationBookingNode
 
 # NOTE:
 # We are not comparing the actual ID regex as this is not deterministic.
@@ -73,5 +73,5 @@ KNOWN_DOCUMENT_NODE_MAPPING: Dict[DocumentTypesEnum, Type[BaseNode]] = {
     DocumentTypesEnum.passport: PassportNode,
     DocumentTypesEnum.flight_ticket: FlightTicketNode,
     DocumentTypesEnum.travel_insurance: TravelInsuranceNode,
-    DocumentTypesEnum.accomodation_booking: AccommodationBookingNode
+    DocumentTypesEnum.accommodation_booking: AccommodationBookingNode
 }

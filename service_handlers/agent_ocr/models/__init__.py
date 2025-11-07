@@ -23,7 +23,7 @@ class DocumentTypesEnum(StrEnum):
     visa = "visa"
     flight_ticket = "flight_ticket"
     travel_insurance = "travel_insurance"
-    accomodation_booking = "accomodation_booking"
+    accommodation_booking = "accommodation_booking"
 
 
 # Available Document Models
@@ -35,6 +35,6 @@ document_models = {
     DocumentTypesEnum.voter_id: VoterId,
     DocumentTypesEnum.visa: Visa,
     DocumentTypesEnum.flight_ticket: FlightTicket,
-    DocumentTypesEnum.accomodation_booking: AccommodationBooking,
+    DocumentTypesEnum.accommodation_booking: AccommodationBooking,
     DocumentTypesEnum.travel_insurance: TravelInsurance,
 }
