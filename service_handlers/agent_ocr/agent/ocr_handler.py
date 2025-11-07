@@ -136,7 +136,6 @@ def _pil_to_cv_bgr(pil_img: Image.Image):
     """Convert PIL RGB image to OpenCV BGR ndarray."""
     return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
-
 def _ocr_pil_image(pil_img: Image.Image) -> str:
     """
     OCR a PIL image without writing to disk by passing a NumPy array (BGR) to PaddleOCR.

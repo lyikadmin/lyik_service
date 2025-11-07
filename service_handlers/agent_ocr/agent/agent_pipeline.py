@@ -33,7 +33,6 @@ async def extract_text_from_documents(
     errors: List[str] = []
 
     try:
-        # Your original field name was `state.image_path`; assuming this is a List[str]
         for document_path in state.image_path:
             try:
                 text = process_file(document_path)
