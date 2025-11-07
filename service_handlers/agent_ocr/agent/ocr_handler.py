@@ -18,6 +18,9 @@ from paddleocr.ppocr.utils.logging import get_logger
 import numpy as np  # pip install numpy
 import cv2          # pip install opencv-python
 
+# --- feature flags ------------------------------------------------------------
+SUPPORT_PDF_IMAGES = False  # set False to disable OCR for images inside PDFs
+
 logger = get_logger()
 logger.setLevel(logging.ERROR)
 # try:
@@ -181,13 +184,18 @@ def ocr_mixed_pdf(pdf_bytes: bytes) -> str:
     return combined.strip()
 
 
-def ocr_pdf(pdf_path: str) -> str:
+def ocr_pdf(pdf_path: str, *, support_images: bool = SUPPORT_PDF_IMAGES) -> str:
     """Detect PDF type (text-only or mixed) and run the correct pipeline."""
     logger.info(f"Processing PDF: {pdf_path}")
     with open(pdf_path, "rb") as f:
         pdf_bytes = f.read()
 
     try:
+        if not support_images:
+            # Always return only the copyable text layer; no image OCR even if images exist.
+            return ocr_text_only_pdf(pdf_bytes)
+
+        # Default behavior (support_images=True): original flow
         if _pdf_has_images(pdf_bytes):
             logger.info("Detected images/text — running mixed OCR pipeline...")
             return ocr_mixed_pdf(pdf_bytes)
@@ -201,10 +209,10 @@ def ocr_pdf(pdf_path: str) -> str:
 
 # --- Image vs PDF router ------------------------------------------------------
 
-def process_file(file_path: str) -> str:
+def process_file(file_path: str, *, support_images: bool = SUPPORT_PDF_IMAGES) -> str:
     """
     Detect file type via magic bytes (fallback to extension) and run the right pipeline.
-    Signature matches your proposal.
+    Signature matches your proposal. The support_images flag controls PDF image OCR.
     """
     path = Path(file_path)
 
@@ -232,6 +240,6 @@ def process_file(file_path: str) -> str:
 
     if mime == "application/pdf":
         logger.info("Detected PDF → running PDF OCR")
-        return ocr_pdf(str(path))
+        return ocr_pdf(str(path), support_images=support_images)
 
     raise ValueError(f"Unsupported MIME type: {mime}")
