@@ -93,7 +93,9 @@ class DrivingLicense(DateConversionMixin):
 
 
 class Aadhaar(DateConversionMixin):
-    aadhaar_number: Union[str, None] = Field(None, description="It is a 12 digit number")
+    aadhaar_number: Union[str, None] = Field(
+        None, description="It is a 12 digit number"
+    )
     full_name: Union[str, None] = Field(None)
     date_of_birth: Union[date, None] = Field(None)
     gender: Union[GenderEnum, None] = Field(None)
@@ -119,10 +121,14 @@ class VoterId(DateConversionMixin):
     country: Union[str, None] = Field(None)
     model_config = ConfigDict(extra="allow")
 
+
 class Visa(DateConversionMixin):
     # document_type: str = "Visa"
     issuing_country: str | None = None
-    issuing_country_code_3: str | None = Field(...,description="Derive the ISO 3166-1 alpha-3 Country code from issuing_country")
+    issuing_country_code_3: str | None = Field(
+        ...,
+        description="Derive the ISO 3166-1 alpha-3 Country code from issuing_country",
+    )
     visa_number: str | None = None
     visa_code: str | None = None
     place_of_issue: str | None = None
@@ -139,4 +145,80 @@ class Visa(DateConversionMixin):
     issuing_authority: str | None = None
     annotations: str | None = None
     mrz: str | None = None
+    model_config = ConfigDict(extra="allow")
+
+
+class FlightTicket(DateConversionMixin):
+    primary_traveller_name: Union[str, None] = Field(
+        None, description="Name of the first traveller detected."
+    )
+    travellers_list: Union[List[str], None] = Field(
+        None, description="List of all travellers, only one if one traveller present"
+    )
+    airline: Union[str, None] = Field(None)
+
+    port_of_entry: Union[str, None] = Field(None)
+    port_of_exit: Union[str, None] = Field(None)
+
+    arrival_date: Union[date, None] = Field(None)
+    departure_date: Union[date, None] = Field(None)
+
+    arrival_time: Union[str, None] = Field(None)
+    departure_time: Union[str, None] = Field(None)
+
+    arrival_airport_and_terminal_name: Union[str, None] = Field(None)
+    departure_airport_and_terminal_name: Union[str, None] = Field(None)
+
+    pnr_number: Union[str, None] = Field(None)
+    ticket_number: Union[str, None] = Field(None)
+
+    model_config = ConfigDict(extra="allow")
+
+class TravelInsurance(DateConversionMixin):
+    # Personal / contact
+    name_of_traveller: Union[str, None] = Field(None)
+    passport_num: Union[str, None] = Field(None)
+    dob: Union[date, None] = Field(None, description="Date of birth")
+    address_of_travaller: Union[str, None] = Field(None)
+    mobile_num: Union[str, None] = Field(None)
+    email_id: Union[str, None] = Field(None)
+
+    # Trip window
+    travel_start_date: Union[date, None] = Field(
+        None, description="Commencement / From"
+    )
+    travel_end_date: Union[date, None] = Field(None, description="End Date / To")
+    duration: Union[str, None] = Field(None, description="Number of days")
+
+    # Coverage / policy
+    geographical_coverage: Union[str, None] = Field(None)
+    name_of_insurance_company: Union[str, None] = Field(None)
+    issue_date_of_travel: Union[date, None] = Field(
+        None, description="Policy issue date"
+    )
+    travel_insurance_policy_num: Union[str, None] = Field(None)
+    emergency_assitance_details: Union[str, None] = Field(None)
+    sum_insured: Union[str, None] = Field(None)
+
+    # Nominee details
+    nominee_name: Union[str, None] = Field(None)
+    relationship_with_nominee: Union[str, None] = Field(None)
+    nominee_mobile: Union[str, None] = Field(None)
+
+    model_config = ConfigDict(extra="allow")
+
+
+class AccommodationBooking(DateConversionMixin):
+    traveller_name: Union[str, None] = Field(None)
+    num_of_passengers: Union[str, None] = Field(None)
+
+    accommodation_name: Union[str, None] = Field(None)
+    accommodation_address: Union[str, None] = Field(None)
+    accommodation_email: Union[str, None] = Field(None)
+    accommodation_phone: Union[str, None] = Field(None)
+
+    start_date: Union[date, None] = Field(None, description="Check-in / Start date")
+    end_date: Union[date, None] = Field(None, description="Check-out / End date")
+
+    # allow extra OCR fields (e.g., booking_id, reservation_no, room_type, etc.)
     model_config = ConfigDict(extra="allow")

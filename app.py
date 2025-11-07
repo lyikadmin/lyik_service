@@ -45,14 +45,14 @@ async def process_endpoint(
     files: List[UploadFile] = File([]),
 ):
     # Verify the license key
-    lm = LicenseManager(license_key=license_key)
-    res, message = await lm.verify()
+    # lm = LicenseManager(license_key=license_key)
+    # res, message = await lm.verify()
 
-    if not res:
-        return StandardResponse(
-            status=ResponseStatusEnum.failure.value,
-            message=str(message),
-        )
+    # if not res:
+    #     return StandardResponse(
+    #         status=ResponseStatusEnum.failure.value,
+    #         message=str(message),
+    #     )
 
     # Call ServiceManager and get Response
     try:

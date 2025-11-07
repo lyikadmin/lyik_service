@@ -17,31 +17,39 @@ from .utils import (
 from ..nodes import DOCUMENT_NODE_PATTERN_MAPPING, KNOWN_DOCUMENT_NODE_MAPPING, BaseNode
 
 # from .ocr_handler import run_paddleocr, run_tesseract
-from .ocr_handler import TextExtractor
+from .ocr_handler import TextExtractor, process_file
 
 from service_handlers.pincode_service import get_pincode_details
 from service_handlers.pincode_service.pin_code_models import PincodeDetails
 
-text_extractor = TextExtractor()
+# text_extractor = TextExtractor()
 
 
-async def extract_text_from_image(
+async def extract_text_from_documents(
     state: DocumentProcessingState,
 ) -> DocumentProcessingState:
-    """Extract text from an image using multiple OCR engines."""
-    # ocr_results = {"paddle": "", "tesseract": ""}
-    ocr_results = ""
+    """
+    Extract text from one or more documents (images or PDFs) using MIME routing.
+    Keeps the original signature and behavior of setting state.extracted_text / state.error.
+    """
+    aggregated_texts: List[str] = []
+    errors: List[str] = []
+
     try:
-        for image_path in state.image_path:
-            image = Image.open(image_path)
+        # Your original field name was `state.image_path`; assuming this is a List[str]
+        for document_path in state.image_path:
+            try:
+                text = process_file(document_path)
+                if text:
+                    aggregated_texts.append(text)
+            except Exception as e:
+                msg = f"OCR failed for {document_path}: {e}"
+                # logger.error(msg)
+                errors.append(msg)
 
-            # ocr_results["paddle"] += run_paddleocr(image_path)
-            ocr_results += text_extractor.extract_text(image_path)
-            # ocr_results["tesseract"] += run_tesseract(image)
-
-        state.extracted_text = ocr_results
-        # if not any(ocr_results.values()):
-        # state.error = "OCR engines detected no text."
+        state.extracted_text = "\n\n".join(aggregated_texts).strip()
+        if errors and not getattr(state, "error", None):
+            state.error = " | ".join(errors)
 
     except Exception as e:
         state.error = f"OCR failed: {str(e)}"
@@ -206,7 +214,7 @@ def build_langraph_pipeline():
     """Builds the LangGraph workflow for document processing."""
     graph = StateGraph(DocumentProcessingState)
 
-    graph.add_node("OCR", extract_text_from_image)
+    graph.add_node("OCR", extract_text_from_documents)
     graph.add_node(
         "Identify Document Type Pattern",
         identify_validate_and_extract_document_with_pattern,
@@ -241,6 +249,7 @@ def build_langraph_pipeline():
 
 #     return graph.compile()
 
+
 # Invoking Document Processing Agent pipeline
 async def process_document(image_path: List[str]) -> Dict:
     """Runs the LangGraph pipeline for a single document."""
@@ -248,7 +257,9 @@ async def process_document(image_path: List[str]) -> Dict:
     state = DocumentProcessingState(image_path=image_path)
     return await pipeline.ainvoke(state)
 
+
 ### Specific for known documents
+
 
 def build_langraph_known_pipeline():
     """
@@ -257,7 +268,7 @@ def build_langraph_known_pipeline():
     """
     graph = StateGraph(DocumentProcessingState)
 
-    graph.add_node("OCR", extract_text_from_image)
+    graph.add_node("OCR", extract_text_from_documents)
     graph.add_node("Extract Known", extract_known_document_node)
     graph.add_node("Validate", validate_document_data)
 
@@ -268,6 +279,7 @@ def build_langraph_known_pipeline():
     graph.set_finish_point("Validate")
     return graph.compile()
 
+
 def _coerce_document_type(value: str):
     try:
         return DocumentTypesEnum(value)
@@ -276,6 +288,7 @@ def _coerce_document_type(value: str):
             return DocumentTypesEnum[value]
         except Exception:
             return None
+
 
 async def extract_known_document_node(
     state: DocumentProcessingState,
@@ -291,7 +304,9 @@ async def extract_known_document_node(
         state.error = "document_type is required for known-document extraction."
         return state
 
-    NodeClass: Type[BaseNode] | None = KNOWN_DOCUMENT_NODE_MAPPING.get(state.document_type)
+    NodeClass: Type[BaseNode] | None = KNOWN_DOCUMENT_NODE_MAPPING.get(
+        state.document_type
+    )
     if NodeClass is None:
         state.error = f"No Document Node found for {state.document_type!s}."
         return state
@@ -304,6 +319,7 @@ async def extract_known_document_node(
         state.error = f"Known-document extract failed: {e}"
 
     return state
+
 
 async def process_known_document(image_path: List[str], ocr_document_type: str) -> Dict:
     """
